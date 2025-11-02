@@ -1,13 +1,19 @@
-from flask import Flask
+import flask 
+import utils 
 
-app = Flask(__name__)
+global manager
+manager = utils.ConnectionManager()
+
+app = flask.Flask(__name__)
 
 @app.route("/")
 def index():
-    return """
-    <p>
-        books
-    </p>
-    """
+    return flask.render_template('base.html')
+
+@app.route("/test")
+def test():
+    return flask.render_template('test_template.html', name="sam g")
 
 app.run(debug=True)
+
+manager.dispose()
