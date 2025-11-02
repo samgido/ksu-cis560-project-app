@@ -1,8 +1,6 @@
 import flask 
 import utils 
 
-utils.check_dotenv()
-
 global manager
 manager = utils.ConnectionManager()
 

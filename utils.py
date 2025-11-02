@@ -4,6 +4,8 @@ import os
 
 class ConnectionManager:
 	def __init__(self) -> None:
+		check_dotenv()
+
 		self.connection = create_database_connection()
 		self.cursor = self.connection.cursor()
 
