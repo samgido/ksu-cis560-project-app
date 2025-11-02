@@ -1,26 +1,21 @@
-import os 
 import flask 
-import dotenv 
-import pyodbc 
-import util
+import utils 
 
-if not dotenv.load_dotenv():
-    print("Environment file not found, see readme")
-    exit(1)
+utils.check_dotenv()
+
+global manager
+manager = utils.ConnectionManager()
 
 app = flask.Flask(__name__)
 
 @app.route("/")
 def index():
-    s = "<p>"
+    return flask.render_template('base.html')
 
-    for row in manager.get_rows("select * from test"):
-        s += str(row) + "\t"
+@app.route("/test")
+def test():
+    return flask.render_template('test_template.html', name="sam g")
 
-    return s + "</p>"
+app.run(debug=True)
 
-if __name__ == "__main___":
-    global manager
-    manager = util.ConnectionManager()
-
-    app.run(debug=True)
+manager.dispose()

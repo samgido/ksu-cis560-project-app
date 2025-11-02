@@ -1,4 +1,7 @@
 .venv/
-pyrightconfig.json
 .python-version
+__pycache__/
+
 .env
+
+pyrightconfig.json
