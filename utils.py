@@ -1,21 +1,7 @@
+from flask import render_template
 import pyodbc
 import dotenv 
 import os 
-
-class ConnectionManager:
-	def __init__(self) -> None:
-		check_dotenv()
-
-		self.connection = create_database_connection()
-		self.cursor = self.connection.cursor()
-
-	def get_rows(self, query: str):
-		self.cursor.execute(query)
-		return self.cursor.fetchall()
-
-	def dispose(self):
-		self.cursor.close()
-		self.connection.close()
 
 def get_env_or_exit(env_name: str):
     val = os.getenv(env_name)
@@ -37,3 +23,5 @@ def check_dotenv():
 		print("Environment file not found, see readme")
 		exit(1)
 
+def render_success_failure(message):
+	return render_template('success_failure.html', message=message)

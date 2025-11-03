@@ -1,0 +1,30 @@
+{% extends 'base.html' %}
+{% block content %}
+<div>
+	<a href="{{ url_for('create_customer') }}">
+		<button>
+			Create customer
+		</button>
+	</a>
+	<a href="{{ url_for('remove_customer') }}">
+		<button>
+			Remove customer
+		</button>
+	</a>
+	<a href="{{ url_for('checkout_book') }}">
+		<button>
+			Checkout book
+		</button>
+	</a>
+	<a href="{{ url_for('return_book') }}">
+		<button>
+			Return book
+		</button>
+	</a>
+	<a href="{{ url_for('books') }}">
+		<button>
+			See books
+		</button>
+	</a>
+</div>
+{% endblock %}
