@@ -1,14 +1,20 @@
 {% extends 'base.html' %}
 {% block content %}
-<form method="POST">
+<form method="POST" class="form">
+	<div class="form_field_div">
 	<label for="email">Email:</label><br>
 	<input type="email" id="email" name="email"><br>
+	</div>
 
+	<div class="form_field_div">
 	<label for="fname">First name:</label><br>
 	<input type="text" id="fname" name="fname"><br>
+	</div>
 
+	<div class="form_field_div">
 	<label for="lname">Last name:</label><br>
 	<input type="text" id="lname" name="fname"><br>
+	</div>
 
 	<input type="submit" name="Submit">
 </form>

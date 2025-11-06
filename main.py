@@ -22,7 +22,7 @@ def remove_customer():
         print(f"Remove customer request for customer {email}")
 
         message = f"Success: customer {email} removed"
-        
+
         if not manager.email_belongs_to_customer(email):
             message = f"Failure: email {email} does not belong to a customer"
 
@@ -58,8 +58,7 @@ def checkout_book():
 
         if not manager.book_available_for_checkout(book_id):
             message = f"Failure: book {book_id} unavailable for checkout"
-
-        if not manager.email_belongs_to_customer(email):
+        elif not manager.email_belongs_to_customer(email):
             message = f"Failure: email {email} doesn't belong to a customer"
 
         return utils.render_success_failure(message)
