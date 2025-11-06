@@ -2,6 +2,9 @@ import flask
 from flask import request, render_template
 import utils 
 from connection_manager import ConnectionManager
+import math
+
+PAGE_SIZE = 50
 
 global manager
 manager = ConnectionManager()
@@ -19,6 +22,7 @@ def remove_customer():
         print(f"Remove customer request for customer {email}")
 
         message = f"Success: customer {email} removed"
+        
         if not manager.email_belongs_to_customer(email):
             message = f"Failure: email {email} does not belong to a customer"
 
@@ -35,6 +39,7 @@ def create_customer():
         print(f"Create customer request for customer {email}, ({lname}, {fname})")
 
         message = f"Success: customer {email} created"
+
         if manager.email_belongs_to_customer(email):
             message = f"Failure: email {email} belongs to another customer"
 
@@ -50,6 +55,7 @@ def checkout_book():
         print(f"Checkout request for book {book_id} to customer {email}")
 
         message = f"Success: book {book_id} checked out"
+
         if not manager.book_available_for_checkout(book_id):
             message = f"Failure: book {book_id} unavailable for checkout"
 
@@ -67,6 +73,7 @@ def return_book():
         print(f"Return book request for book {book_id}")
 
         message = f"Success: book {book_id} returned"
+
         if manager.book_available_for_checkout(book_id):
             message = f"Failure: book {book_id} not checked out"
 
@@ -74,9 +81,13 @@ def return_book():
 
     return render_template('return_book.html')
 
-@app.route("/books")
-def books():
-    return render_template('books.html')
+@app.route("/books/<int:page_number>")
+def books(page_number):
+    book_count = manager.book_count
+
+    page_count = math.ceil(book_count / PAGE_SIZE)
+
+    return render_template('books.html', page_number=page_number, page_count=page_count)
 
 app.run(debug=True)
 
