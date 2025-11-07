@@ -5,8 +5,6 @@ import utils
 from service import Service
 import math
 
-PAGE_SIZE = 50
-
 repository = Repository()
 global service
 service = Service(repository)
@@ -84,11 +82,27 @@ def return_book():
 
 @app.route("/books/<int:page_number>")
 def books(page_number):
-    book_count = service.book_count
+    book_count = service.get_book_count()
 
-    page_count = math.ceil(book_count / PAGE_SIZE)
+    page_count = math.ceil(book_count / utils.PAGE_SIZE)
 
-    return render_template('books.html', page_number=page_number, page_count=page_count)
+    books = service.repo.get_books_list_display(page_number)
+
+    return render_template('books.html', 
+        page_number=page_number, 
+        page_count=page_count, 
+        books=books
+    )
+
+@app.route("/book/<int:book_id>")
+def book(book_id):
+    book = service.get_book(book_id)
+
+    if book == None:
+        message = "Book not found"
+        return utils.render_success_failure(message)
+
+    return render_template('view_book.html', book=book)
 
 app.run(debug=True)
 

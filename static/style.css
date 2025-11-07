@@ -23,8 +23,23 @@ input {
 	margin: 0% 0.8% 0% 0.2%;
 }
 
-.form_field_div {
+.form div {
 	display: flex;
 	justify-content: flex-start;
 	align-items: baseline;
+}
+
+.book_list_display_div {
+	display: flex;
+	align-items: center;
+	margin: 1% 0%;
+}
+
+.book_list_display_div p, a {
+	margin: 0% 1%;
+}
+
+.book_list_display_cover_img {
+	width: 30px;
+	height: 40px;
 }

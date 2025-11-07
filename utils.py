@@ -3,6 +3,8 @@ import pyodbc
 import dotenv 
 import os 
 
+PAGE_SIZE = 32
+
 def get_env_or_exit(env_name: str):
     val = os.getenv(env_name)
 
