@@ -22,7 +22,6 @@ class Book:
 	genre: str
 	available: bool
 
-
 class Service:
 	def __init__(self, repository: Repository) -> None:
 		check_dotenv()

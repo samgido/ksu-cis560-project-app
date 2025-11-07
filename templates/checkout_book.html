@@ -8,7 +8,12 @@
 
 	<div>
 	<label for="book_id">Book ID:</label><br>
+
+	{% if book_id %}
+	<p>{{ book_id }}</p>
+	{% else %}
 	<input type="number" id="book_id" name="book_id"><br>
+	{% endif %}
 	</div>
 
 	<input type="submit" name="Submit">

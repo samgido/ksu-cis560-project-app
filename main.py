@@ -47,8 +47,9 @@ def create_customer():
 
     return render_template('create_customer.html')
 
+@app.route("/checkout_book/<book_id>")
 @app.route("/checkout_book", methods=['POST', 'GET'])
-def checkout_book():
+def checkout_book(book_id=None):
     if request.method == "POST":
         email = request.form.get('email')
         book_id = int(request.form.get('book_id') or "0")
@@ -63,7 +64,7 @@ def checkout_book():
 
         return utils.render_success_failure(message)
 
-    return render_template('checkout_book.html')
+    return render_template('checkout_book.html', book_id=book_id)
 
 @app.route("/return_book", methods=['POST', 'GET'])
 def return_book():
