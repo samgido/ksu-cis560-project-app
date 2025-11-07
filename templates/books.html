@@ -1,0 +1,20 @@
+{% extends 'base.html' %}
+{% block content %}
+
+<div class="page_number_div">
+<a href="{{ url_for('books', page_number=(page_number-1)) }}">
+	<button {% if page_number < 2 %} disabled {% endif %} >
+		Prev page
+	</button>
+</a>
+
+<p>Page {{ page_number }} of {{ page_count }}</p>
+
+<a href="{{ url_for('books', page_number=(page_number+1)) }}">
+	<button {% if page_number >= page_count %} disabled {% endif %}>
+		Next page
+	</button>
+</a>
+</div>
+
+{% endblock %}
