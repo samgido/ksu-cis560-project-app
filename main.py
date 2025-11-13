@@ -1,5 +1,5 @@
 import flask 
-from flask import request, render_template
+from flask import redirect, request, render_template
 from repository import Repository
 import utils 
 from service import Service
@@ -13,7 +13,7 @@ app = flask.Flask(__name__)
 
 @app.route("/")
 def index():
-    return flask.render_template('index.html')
+    return render_template('index.html')
 
 @app.route("/remove_customer", methods=['POST', 'GET'])
 def remove_customer():
@@ -38,48 +38,53 @@ def create_customer():
         lname = request.form.get('lname')
         print(f"Create customer request for customer {email}, ({lname}, {fname})")
 
-        message = f"Success: customer {email} created"
+        error = service.create_customer(email, fname, lname)
 
-        if service.email_belongs_to_customer(email):
-            message = f"Failure: email {email} belongs to another customer"
-
-        return utils.render_success_failure(message)
+        return utils.render_success_failure(error or "Customer created successfully")
 
     return render_template('create_customer.html')
 
-@app.route("/checkout_book/<book_id>")
-@app.route("/checkout_book", methods=['POST', 'GET'])
-def checkout_book(book_id=None):
+@app.route("/checkout_book/<int:book_id>", methods=['POST', 'GET'])
+def checkout_book(book_id):
     if request.method == "POST":
         email = request.form.get('email')
-        book_id = int(request.form.get('book_id') or "0")
         print(f"Checkout request for book {book_id} to customer {email}")
 
-        message = f"Success: book {book_id} checked out"
+        error = service.checkout_book(book_id, email)
 
-        if not service.book_available_for_checkout(book_id):
-            message = f"Failure: book {book_id} unavailable for checkout"
-        elif not service.email_belongs_to_customer(email):
-            message = f"Failure: email {email} doesn't belong to a customer"
+        return utils.render_success_failure(error or "Book checked out successfully")
 
+    book = service.get_book(book_id)
+
+    if book == None:
+        message = "Book not found"
         return utils.render_success_failure(message)
 
-    return render_template('checkout_book.html', book_id=book_id)
+    return render_template('checkout_book.html', book=book)
 
-@app.route("/return_book", methods=['POST', 'GET'])
+@app.route("/return_book/")
 def return_book():
-    if request.method == "POST":
-        book_id = int(request.form.get('book_id') or "0")
-        print(f"Return book request for book {book_id}")
+    error = None
 
-        message = f"Success: book {book_id} returned"
+    email = request.args.get('email', None)
+    book_id = request.args.get('book_id', None)
 
-        if service.book_available_for_checkout(book_id):
-            message = f"Failure: book {book_id} not checked out"
+    if email is not None and book_id is not None:
+        if not service.email_belongs_to_customer(email):
+            return utils.render_success_failure(f"Email {email} does not belong to customer")
 
-        return utils.render_success_failure(message)
+        return utils.render_success_failure("Invalid args given")
 
-    return render_template('return_book.html')
+    if email is not None and book_id is None:
+        return utils.render_success_failure(f"Received email arg, showing all books checked out by {email}")
+
+    if book_id is not None and email is None:
+        return utils.render_success_failure(f"Received book_id arg, showing all users who've checked out book {book_id}")
+
+    if email is None and book_id is None:
+        return utils.render_success_failure("Neither arg given, showing form for user email input")
+
+    return utils.render_success_failure(error or "Book returned successfully")
 
 @app.route("/books/<int:page_number>")
 def books(page_number):
@@ -95,8 +100,8 @@ def books(page_number):
         books=books
     )
 
-@app.route("/book/<int:book_id>")
-def book(book_id):
+@app.route("/book_details/<int:book_id>")
+def book_details(book_id):
     book = service.get_book(book_id)
 
     if book == None:

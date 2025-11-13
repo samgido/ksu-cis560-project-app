@@ -1,22 +1,13 @@
 {% extends 'base.html' %}
 {% block content %}
+
+<p> Checking out {{ book.title }} </p>
 <form method="POST" class="form">
 	<div>
 	<label for="email">Loaner's email:</label><br>
 	<input type="email" id="email" name="email"><br>
 	</div>
 
-	<div>
-	<label for="book_id">Book ID:</label><br>
-
-	{% if book_id %}
-	<p>{{ book_id }}</p>
-	{% else %}
-	<input type="number" id="book_id" name="book_id"><br>
-	{% endif %}
-	</div>
-
 	<input type="submit" name="Submit">
 </form>
 {% endblock %}
-

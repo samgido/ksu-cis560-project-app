@@ -1,4 +1,23 @@
 {% extends 'base.html' %}
 {% block content %}
-	{{ book.title }}
+	<p>{{ book.total_count }}</p>
+
+	<img src="{{ book.cover_img_url }}"/>
+	<p>{{ book.title }}</p>
+
+	<div>
+		{% if book.available %}
+			<p>{{ book.available_count }} cop{% if book.available_count > 1 %}ies{% else %}y{% endif %} available</p>
+
+			<a href="{{ url_for('checkout_book', book_id=book.book_id) }}">
+				<button>Checkout</button>
+			</a>
+		{% endif %}
+
+		{% if book.available_count < book.total_count %}
+			<a href="{{ url_for('return_book', book_id=book.book_id) }}">
+				<button>Return</button>
+			</a>
+		{% endif %}
+	</div>
 {% endblock %}

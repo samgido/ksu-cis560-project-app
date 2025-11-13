@@ -8,7 +8,7 @@ class Repository:
 
 	def get_book_count(self):
 		sql="""\
-		select count(*) from Books;
+		select count(*) from Book;
 		"""
 		rows = self.get_rows(sql)
 
@@ -19,24 +19,50 @@ class Repository:
 		book_count = int(rows[0][0])
 		return book_count
 
-	def email_belongs_to_customer(self, email):
-		print("Warning: Email belongs to customer not implemented")
-		return email == "johndoe@gmail.com" 
+	def get_customer(self, email):
+		sql=f"""\
+		select count(*) 
+		from Customer 
+		where Customer.EmailAddress = N'{email}'
+		"""
+		rows = self.get_rows(sql)
+		return rows
 
-	def book_available_for_checkout(self, book_id):
-		print("Warning: Book available for checkout not implemented")
-		return book_id == 1 
+	def get_users_checked_books(self, email):
+		print("Warning: Get users checked books not implemented")
+		return []
+
+	def get_book_loaners(self, book_id):
+		print("Warning: Get loaners not implemented")
+		return []
+
+	def get_checked_copy_count(self, book_id):
+		print("Warning: Get available count not implemented")
+		return 3 if book_id != 1 else 0
+
+	def get_total_copy_count(self, book_id):
+		sql=f"""\
+		select count(*) 
+		from SharedData.dbo.BookCopy
+		where BookCopy.BookID = {book_id}
+		"""
+		rows = self.get_rows(sql)
+
+		if (len(rows) == 0):
+			return 0
+
+		return int(rows[0][0])
 
 	def get_books_list_display(self, page_number):
 		sql=f"""\
 		select 
-			Books.BookID as book_id, 
-			Books.CoverImg as cover_img_url, 
-			Books.BookTitle as title, 
-			Genres.GenreName as genre
-		from SharedData.dbo.Books
-			inner join SharedData.dbo.Genres on Genres.GenreID = Books.GenreID
-		order by Books.BookID asc
+			Book.BookID as book_id, 
+			Book.CoverImg as cover_img_url, 
+			Book.Title as title, 
+			Genre.Name as genre
+		from SharedData.dbo.Book
+			inner join SharedData.dbo.Genre on Genre.GenreID = Book.GenreID
+		order by Book.BookID asc
 		offset ({PAGE_SIZE} * ({page_number} - 1)) rows fetch next {PAGE_SIZE} rows only;
 		"""
 		rows = self.get_rows(sql)
@@ -45,15 +71,16 @@ class Repository:
 	def get_book(self, book_id):
 		sql=f"""\
 		select 
-			Books.BookID as book_id,
-			Books.ISBN as isbn,
-			Books.CoverImg as cover_img_url,
-			Books.Author as author,
-			Books.BookTitle as title,
-			Genres.GenreName as genre
-		from SharedData.dbo.Books
-			inner join SharedData.dbo.Genres on Genres.GenreID = Books.GenreID
-		where Books.BookID = {book_id}
+			Book.BookID as book_id,
+			Book.ISBN as isbn,
+			Book.CoverImg as cover_img_url,
+			concat(Author.LastName, ',', Author.FirstName) as author,
+			Book.Title as title,
+			Genre.Name as genre
+		from SharedData.dbo.Book
+			inner join SharedData.dbo.Genre on Genre.GenreID = Book.GenreID
+			inner join SharedData.dbo.Author on Author.AuthorID = Book.AuthorID
+		where Book.BookID = {book_id}
 		"""
 		rows = self.get_rows(sql)
 		return rows
