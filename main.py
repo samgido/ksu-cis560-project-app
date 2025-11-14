@@ -76,7 +76,8 @@ def return_book():
         return utils.render_success_failure("Invalid args given")
 
     if email is not None and book_id is None:
-        return utils.render_success_failure(f"Received email arg, showing all books checked out by {email}")
+        # return utils.render_success_failure(f"Received email arg, showing all books checked out by {email}")
+        self.repo.
 
     if book_id is not None and email is None:
         return utils.render_success_failure(f"Received book_id arg, showing all users who've checked out book {book_id}")

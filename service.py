@@ -1,4 +1,4 @@
-from typing import Optional
+from typing import Optional, List
 from pyodbc import Row
 from repository import Repository
 from utils import check_dotenv
@@ -115,6 +115,12 @@ class Service:
 			available_count,
 			total_count
 		)
+
+	def get_user_checked_books(self, email) -> Optional[List[ListDisplayBook]]:
+		rows = self.repo.get_users_checked_books(email)
+
+		if (len(rows) == 0):
+			return None
 
 	def get_available_count(self, book_id):
 		total_count = self.repo.get_total_copy_count(book_id)
