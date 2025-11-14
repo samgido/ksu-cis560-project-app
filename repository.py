@@ -29,8 +29,37 @@ class Repository:
 		return rows
 
 	def get_users_checked_books(self, email):
-		print("Warning: Get users checked books not implemented")
-		return []
+		sql=f"""\
+		with CurrentCheckedBook(BookID, LenderEmailAddress) as (
+			select BookCopy.BookID, Customer.EmailAddress
+			from SharedData.dbo.Checkout
+				inner join SharedData.dbo.BookCopy on BookCopy.BookCopyID = Checkout.BookCopyID
+				inner join SharedData.dbo.LibraryCard on LibraryCard.LibraryCardID = Checkout.LenderLibraryCardId
+				inner join SharedData.dbo.Customer on Customer.CustomerID = LibraryCard.CustomerID
+			where Checkout.DateReturned is null
+		),
+		BookInfo(BookID, ISBN, CoverImg, Title, Author, Genre) as (
+			select
+				Book.BookID, Book.ISBN, Book.CoverImg, Book.Title,
+				concat(Author.LastName, ',', Author.FirstName) as Author,
+				Genre.Name
+			from SharedData.dbo.Book
+				inner join SharedData.dbo.Author on Author.AuthorID = Book.AuthorID
+				inner join SharedData.dbo.Genre on Genre.GenreID = Book.GenreID
+		)
+		select 
+			BookInfo.BookID as book_id,
+			BookInfo.ISBN as isbn,
+			BookInfo.CoverImg as cover_img,
+			BookInfo.Title as title,
+			BookInfo.Author as author,
+			BookInfo.Genre as genre,
+		from CurrentCheckedBook
+			inner join BookInfo on BookInfo.BookID = CurrentCheckedBook.BookID
+		where CurrentCheckedBook.LenderEmailAddress = N'{email}'
+		"""
+		rows = self.get_rows(sql)
+		return rows
 
 	def get_book_loaners(self, book_id):
 		print("Warning: Get loaners not implemented")
