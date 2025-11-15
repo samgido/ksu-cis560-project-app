@@ -1,3 +1,4 @@
+from typing import Optional, List, Any
 from flask import render_template
 import pyodbc
 import dotenv 
@@ -27,3 +28,10 @@ def check_dotenv():
 
 def render_success_failure(message):
 	return render_template('success_failure.html', message=message)
+
+def check_if_element_null(l: List[Optional[Any]]) -> Optional[List[Any]]:
+    if (not all(l)):
+        return None
+
+    return l 
+

@@ -4,7 +4,7 @@
 <h1>Books</h1>
 
 {% for book in books %}
-	<div class="book_list_display_div">
+	<div class="list_display_div">
 	<img src="{{ book.cover_img_url }}" class="book_list_display_cover_img" />
 
 	<a href="{{ url_for('book_details', book_id=book.book_id) }}">

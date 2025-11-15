@@ -50,10 +50,10 @@ class Repository:
 		select 
 			BookInfo.BookID as book_id,
 			BookInfo.ISBN as isbn,
-			BookInfo.CoverImg as cover_img,
+			BookInfo.CoverImg as cover_img_url,
 			BookInfo.Title as title,
 			BookInfo.Author as author,
-			BookInfo.Genre as genre,
+			BookInfo.Genre as genre
 		from CurrentCheckedBook
 			inner join BookInfo on BookInfo.BookID = CurrentCheckedBook.BookID
 		where CurrentCheckedBook.LenderEmailAddress = N'{email}'
@@ -62,16 +62,42 @@ class Repository:
 		return rows
 
 	def get_book_loaners(self, book_id):
-		print("Warning: Get loaners not implemented")
-		return []
+		sql=f"""\
+		with UserWithCheckedBook(CustomerID, BookID) as (
+			select LibraryCard.CustomerID, BookCopy.BookID
+			from SharedData.dbo.Checkout
+				inner join SharedData.dbo.LibraryCard on LibraryCard.LibraryCardID = Checkout.LenderLibraryCardId
+				inner join SharedData.dbo.BookCopy on BookCopy.BookCopyID = Checkout.BookCopyID
+			where Checkout.DateReturned is null
+		)
+		select 
+			Customer.CustomerID as customer_id,
+			Customer.EmailAddress as email,
+			concat(Customer.LastName, ',', Customer.FirstName) as name
+		from UserWithCheckedBook
+			inner join SharedData.dbo.Customer on Customer.CustomerID = UserWithCheckedBook.CustomerID
+		where UserWithCheckedBook.BookID = {book_id};
+		"""
+		rows = self.get_rows(sql)
+		return rows
 
 	def get_checked_copy_count(self, book_id):
-		print("Warning: Get available count not implemented")
-		return 3 if book_id != 1 else 0
+		sql=f"""\
+		select count(distinct BookCopy.BookCopyID) as count
+		from SharedData.dbo.Checkout
+			inner join SharedData.dbo.BookCopy on BookCopy.BookCopyID = Checkout.BookCopyID
+		where Checkout.DateReturned is null and BookCopy.BookID = {book_id}
+		"""
+		rows = self.get_rows(sql)
+
+		if(len(rows) == 0):
+			return 0
+
+		return int(rows[0].count)
 
 	def get_total_copy_count(self, book_id):
 		sql=f"""\
-		select count(*) 
+		select count(distinct BookCopy.BookCopyID) as count
 		from SharedData.dbo.BookCopy
 		where BookCopy.BookID = {book_id}
 		"""
@@ -80,9 +106,9 @@ class Repository:
 		if (len(rows) == 0):
 			return 0
 
-		return int(rows[0][0])
+		return int(rows[0].count)
 
-	def get_books_list_display(self, page_number):
+	def get_book_list_display(self, page_number):
 		sql=f"""\
 		select 
 			Book.BookID as book_id, 
@@ -91,7 +117,7 @@ class Repository:
 			Genre.Name as genre
 		from SharedData.dbo.Book
 			inner join SharedData.dbo.Genre on Genre.GenreID = Book.GenreID
-		order by Book.BookID asc
+		order by Book.Title asc
 		offset ({PAGE_SIZE} * ({page_number} - 1)) rows fetch next {PAGE_SIZE} rows only;
 		"""
 		rows = self.get_rows(sql)

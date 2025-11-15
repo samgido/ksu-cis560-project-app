@@ -70,17 +70,26 @@ def return_book():
     book_id = request.args.get('book_id', None)
 
     if email is not None and book_id is not None:
-        if not service.email_belongs_to_customer(email):
-            return utils.render_success_failure(f"Email {email} does not belong to customer")
+        # if not service.email_belongs_to_customer(email):
+        #     return utils.render_success_failure(f"Email {email} does not belong to customer")
 
-        return utils.render_success_failure("Invalid args given")
+        return utils.render_success_failure(f"Checkout submitted for email {email} and book {book_id}")
 
     if email is not None and book_id is None:
-        # return utils.render_success_failure(f"Received email arg, showing all books checked out by {email}")
-        self.repo.
+        books = service.get_user_checked_books(email)
+
+        if books is None:
+            return utils.render_success_failure("User has no checked books")
+
+        return render_template('user_checked_books.html', email=email, books=books)
 
     if book_id is not None and email is None:
-        return utils.render_success_failure(f"Received book_id arg, showing all users who've checked out book {book_id}")
+        users = service.get_book_loaners(book_id)
+
+        if users is None:
+            return utils.render_success_failure("Book isn't checked out by any users")
+
+        return render_template('book_loaners.html', book_id=book_id, users=users)
 
     if email is None and book_id is None:
         return utils.render_success_failure("Neither arg given, showing form for user email input")
@@ -93,7 +102,7 @@ def books(page_number):
 
     page_count = math.ceil(book_count / utils.PAGE_SIZE)
 
-    books = service.repo.get_books_list_display(page_number)
+    books = service.repo.get_book_list_display(page_number)
 
     return render_template('books.html', 
         page_number=page_number, 

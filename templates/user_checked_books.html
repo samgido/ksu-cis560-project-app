@@ -1,3 +1,16 @@
 {% extends 'base.html' %}
 {% block content %}
+
+{% for book in books %}
+	<div class="list_display_div">
+	<img src="{{ book.cover_img_url }}" class="book_list_display_cover_img" />
+
+	<p>{{ book.title }}</p>
+
+	<a href="{{ url_for('return_book', email=email, book_id=book.book_id) }}">
+		<button>Return</button>
+	</a>
+	</div>
+{% endfor %}
+
 {% endblock %}

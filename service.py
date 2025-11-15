@@ -1,4 +1,4 @@
-from typing import Optional, List
+from typing import Any, Optional, List
 from pyodbc import Row
 from repository import Repository
 from utils import check_dotenv
@@ -26,6 +26,12 @@ class Book:
 	available_count: int
 	total_count: int
 
+@dataclass
+class ListDisplayUser:
+	customer_id: int
+	email: str
+	name: str
+
 class Service:
 	def __init__(self, repository: Repository) -> None:
 		check_dotenv()
@@ -43,7 +49,6 @@ class Service:
 
 		if self.book_available_for_checkout(book_id):
 			return f"Book {book_id} not checked out, cannot be returned"
-
 
 		return None
 
@@ -74,25 +79,11 @@ class Service:
 	def get_book_count(self):
 		return self.repo.get_book_count()
 
-	def get_books_list_display(self, page_number):
-		def make_display_book(r: Row):
-			book_id = r.book_id
-			available_count = self.repo.get_checked_copy_count(book_id)
-			available = self.book_available_for_checkout(book_id)
+	def get_books_list_display(self, page_number) -> Optional[List[ListDisplayBook]]:
+		rows = self.repo.get_book_list_display(page_number)
+		books = list(map(self.make_display_book, rows))
 
-			return ListDisplayBook(
-				book_id,
-				r.cover_img_url,
-				r.title,
-				r.genre,
-				available,
-				available_count
-			)
-
-		rows = self.repo.get_books_list_display(page_number)
-		books = map(make_display_book, rows)
-
-		return books
+		return utils.check_if_element_null(books)
 
 	def get_book(self, book_id) -> Optional[Book]:
 		rows = self.repo.get_book(book_id)
@@ -100,27 +91,28 @@ class Service:
 		if (len(rows) == 0):
 			return None
 
-		b = rows[0]
-		available = self.book_available_for_checkout(book_id)
-		available_count = self.repo.get_checked_copy_count(book_id)
-		total_count = self.repo.get_total_copy_count(book_id)
-		return Book(
-			b.book_id,
-			b.isbn,
-			b.cover_img_url,
-			b.author, 
-			b.title,
-			b.genre,
-			available,
-			available_count,
-			total_count
-		)
+		row = rows[0]
+		return self.make_book(row)
 
 	def get_user_checked_books(self, email) -> Optional[List[ListDisplayBook]]:
 		rows = self.repo.get_users_checked_books(email)
 
 		if (len(rows) == 0):
 			return None
+
+		books = list(map(self.make_display_book, rows))
+
+		return utils.check_if_element_null(books)
+
+	def get_book_loaners(self, book_id) -> Optional[List[ListDisplayUser]]:
+		rows = self.repo.get_book_loaners(book_id)
+
+		if(len(rows) == 0):
+			return None
+
+		users = list(map(self.make_display_user, rows))
+
+		return utils.check_if_element_null(users)
 
 	def get_available_count(self, book_id):
 		total_count = self.repo.get_total_copy_count(book_id)
@@ -134,6 +126,57 @@ class Service:
 	def email_belongs_to_customer(self, email):
 		rows = self.repo.get_customer(email)
 		return len(rows) > 0
+
+	def make_display_user(self, r: Row) -> Optional[ListDisplayUser]:
+		try:
+			return ListDisplayUser(
+				r.customer_id,
+				r.email,
+				r.name
+			)
+		except:
+			print("make_display_user was not given a row it needed")
+			return None
+
+	def make_book(self, r: Row) -> Optional[Book]:
+		try: 
+			book_id = r.book_id
+			available = self.book_available_for_checkout(book_id)
+			available_count = self.repo.get_checked_copy_count(book_id)
+			total_count = self.repo.get_total_copy_count(book_id)
+
+			return Book(
+				r.book_id,
+				r.isbn,
+				r.cover_img_url,
+				r.author, 
+				r.title,
+				r.genre,
+				available,
+				available_count,
+				total_count
+			)
+		except:
+			print("make_book was not given a row it needed")
+			return None
+
+	def make_display_book(self, r: Row) -> Optional[ListDisplayBook]:
+		try:
+			book_id = r.book_id
+			available_count = self.repo.get_checked_copy_count(book_id)
+			available = self.book_available_for_checkout(book_id)
+
+			return ListDisplayBook(
+				book_id,
+				r.cover_img_url,
+				r.title,
+				r.genre,
+				available,
+				available_count
+			)
+		except:
+			print("make_display_book was not given a row it needed")
+			return None
 
 	def dispose(self):
 		self.repo.dispose()
