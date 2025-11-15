@@ -3,7 +3,6 @@ from utils import check_dotenv, create_database_connection, PAGE_SIZE
 class Repository:
 	def __init__(self):
 		check_dotenv()
-
 		self.conn = create_database_connection()
 
 	def get_book_count(self):
@@ -144,8 +143,8 @@ class Repository:
 		cursor = self.conn.cursor()
 		cursor.execute(query)
 		rows = cursor.fetchall()
-
 		cursor.close()
+
 		return rows
 
 	def dispose(self):

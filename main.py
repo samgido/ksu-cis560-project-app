@@ -70,9 +70,6 @@ def return_book():
     book_id = request.args.get('book_id', None)
 
     if email is not None and book_id is not None:
-        # if not service.email_belongs_to_customer(email):
-        #     return utils.render_success_failure(f"Email {email} does not belong to customer")
-
         return utils.render_success_failure(f"Checkout submitted for email {email} and book {book_id}")
 
     if email is not None and book_id is None:

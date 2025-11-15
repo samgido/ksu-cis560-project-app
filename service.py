@@ -1,3 +1,4 @@
+from os import kill
 from typing import Any, Optional, List
 from pyodbc import Row
 from repository import Repository
@@ -35,10 +36,8 @@ class ListDisplayUser:
 class Service:
 	def __init__(self, repository: Repository) -> None:
 		check_dotenv()
-
 		self.repo = repository
-
-		self.book_count = 0
+		
 		self.get_book_count()
 
 	def return_book(self, book_id, email):
