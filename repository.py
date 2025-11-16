@@ -1,5 +1,7 @@
 from utils import check_dotenv, create_database_connection, PAGE_SIZE
 
+DB = "SharedData.dbo"
+
 class Repository:
 	def __init__(self):
 		check_dotenv()
@@ -31,10 +33,10 @@ class Repository:
 		sql=f"""\
 		with CurrentCheckedBook(BookID, LenderEmailAddress) as (
 			select BookCopy.BookID, Customer.EmailAddress
-			from SharedData.dbo.Checkout
-				inner join SharedData.dbo.BookCopy on BookCopy.BookCopyID = Checkout.BookCopyID
-				inner join SharedData.dbo.LibraryCard on LibraryCard.LibraryCardID = Checkout.LenderLibraryCardId
-				inner join SharedData.dbo.Customer on Customer.CustomerID = LibraryCard.CustomerID
+			from {DB}.Checkout
+				inner join {DB}.BookCopy on BookCopy.BookCopyID = Checkout.BookCopyID
+				inner join {DB}.LibraryCard on LibraryCard.LibraryCardID = Checkout.LenderLibraryCardId
+				inner join {DB}.Customer on Customer.CustomerID = LibraryCard.CustomerID
 			where Checkout.DateReturned is null
 		),
 		BookInfo(BookID, ISBN, CoverImg, Title, Author, Genre) as (
@@ -42,9 +44,9 @@ class Repository:
 				Book.BookID, Book.ISBN, Book.CoverImg, Book.Title,
 				concat(Author.LastName, ',', Author.FirstName) as Author,
 				Genre.Name
-			from SharedData.dbo.Book
-				inner join SharedData.dbo.Author on Author.AuthorID = Book.AuthorID
-				inner join SharedData.dbo.Genre on Genre.GenreID = Book.GenreID
+			from {DB}.Book
+				inner join {DB}.Author on Author.AuthorID = Book.AuthorID
+				inner join {DB}.Genre on Genre.GenreID = Book.GenreID
 		)
 		select 
 			BookInfo.BookID as book_id,
@@ -56,6 +58,37 @@ class Repository:
 		from CurrentCheckedBook
 			inner join BookInfo on BookInfo.BookID = CurrentCheckedBook.BookID
 		where CurrentCheckedBook.LenderEmailAddress = N'{email}'
+		order by BookInfo.ISBN
+		"""
+		rows = self.get_rows(sql)
+		return rows
+
+	def return_book(self, checkout_id):
+		sql=f"""\
+		update {DB}.Checkout
+		set DateReturned = GETDATE()
+		where Checkout.CheckoutID = {checkout_id}
+		"""
+		_, rows_affected = self.get_rows_and_rows_affected(sql)
+		return rows_affected
+
+	def get_checkouts(self, email, book_id):
+		sql=f"""\
+		with CheckoutCte(CheckoutID, LenderEmailAddress, BookID, CheckoutDate) as (
+			select 
+				Checkout.CheckoutID, 
+				Customer.EmailAddress as LenderEmailAddress, 
+				BookCopy.BookID,
+				Checkout.CheckoutDate
+			from {DB}.Checkout
+				inner join {DB}.BookCopy on BookCopy.BookCopyID = Checkout.BookCopyID
+				inner join {DB}.LibraryCard on LibraryCard.LibraryCardID = Checkout.LenderLibraryCardId
+				inner join {DB}.Customer on Customer.CustomerID = LibraryCard.CustomerID
+		)
+		select CheckoutCte.CheckoutID
+		from CheckoutCte
+		where CheckoutCte.LenderEmailAddress = {email} and CheckoutCte.BookID = {book_id}
+		order by CheckoutCte.CheckoutDate asc
 		"""
 		rows = self.get_rows(sql)
 		return rows
@@ -64,9 +97,9 @@ class Repository:
 		sql=f"""\
 		with UserWithCheckedBook(CustomerID, BookID) as (
 			select LibraryCard.CustomerID, BookCopy.BookID
-			from SharedData.dbo.Checkout
-				inner join SharedData.dbo.LibraryCard on LibraryCard.LibraryCardID = Checkout.LenderLibraryCardId
-				inner join SharedData.dbo.BookCopy on BookCopy.BookCopyID = Checkout.BookCopyID
+			from {DB}.Checkout
+				inner join {DB}.LibraryCard on LibraryCard.LibraryCardID = Checkout.LenderLibraryCardId
+				inner join {DB}.BookCopy on BookCopy.BookCopyID = Checkout.BookCopyID
 			where Checkout.DateReturned is null
 		)
 		select 
@@ -74,8 +107,9 @@ class Repository:
 			Customer.EmailAddress as email,
 			concat(Customer.LastName, ',', Customer.FirstName) as name
 		from UserWithCheckedBook
-			inner join SharedData.dbo.Customer on Customer.CustomerID = UserWithCheckedBook.CustomerID
+			inner join {DB}.Customer on Customer.CustomerID = UserWithCheckedBook.CustomerID
 		where UserWithCheckedBook.BookID = {book_id};
+		order by Customer.LastName, Customer.FirstName, Customer.CustomerID
 		"""
 		rows = self.get_rows(sql)
 		return rows
@@ -83,8 +117,8 @@ class Repository:
 	def get_checked_copy_count(self, book_id):
 		sql=f"""\
 		select count(distinct BookCopy.BookCopyID) as count
-		from SharedData.dbo.Checkout
-			inner join SharedData.dbo.BookCopy on BookCopy.BookCopyID = Checkout.BookCopyID
+		from {DB}.Checkout
+			inner join {DB}.BookCopy on BookCopy.BookCopyID = Checkout.BookCopyID
 		where Checkout.DateReturned is null and BookCopy.BookID = {book_id}
 		"""
 		rows = self.get_rows(sql)
@@ -97,7 +131,7 @@ class Repository:
 	def get_total_copy_count(self, book_id):
 		sql=f"""\
 		select count(distinct BookCopy.BookCopyID) as count
-		from SharedData.dbo.BookCopy
+		from {DB}.BookCopy
 		where BookCopy.BookID = {book_id}
 		"""
 		rows = self.get_rows(sql)
@@ -114,8 +148,8 @@ class Repository:
 			Book.CoverImg as cover_img_url, 
 			Book.Title as title, 
 			Genre.Name as genre
-		from SharedData.dbo.Book
-			inner join SharedData.dbo.Genre on Genre.GenreID = Book.GenreID
+		from {DB}.Book
+			inner join {DB}.Genre on Genre.GenreID = Book.GenreID
 		order by Book.Title asc
 		offset ({PAGE_SIZE} * ({page_number} - 1)) rows fetch next {PAGE_SIZE} rows only;
 		"""
@@ -131,9 +165,9 @@ class Repository:
 			concat(Author.LastName, ',', Author.FirstName) as author,
 			Book.Title as title,
 			Genre.Name as genre
-		from SharedData.dbo.Book
-			inner join SharedData.dbo.Genre on Genre.GenreID = Book.GenreID
-			inner join SharedData.dbo.Author on Author.AuthorID = Book.AuthorID
+		from {DB}.Book
+			inner join {DB}.Genre on Genre.GenreID = Book.GenreID
+			inner join {DB}.Author on Author.AuthorID = Book.AuthorID
 		where Book.BookID = {book_id}
 		"""
 		rows = self.get_rows(sql)
@@ -146,6 +180,15 @@ class Repository:
 		cursor.close()
 
 		return rows
+
+	def get_rows_and_rows_affected(self, query: str):
+		cursor = self.conn.cursor()
+		cursor.execute(query)
+		rows = cursor.fetchall()
+		rows_affected = cursor.rowcount;
+		cursor.close()
+
+		return rows, rows_affected
 
 	def dispose(self):
 		self.conn.close()

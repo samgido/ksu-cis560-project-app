@@ -29,9 +29,6 @@ def check_dotenv():
 def render_success_failure(message):
 	return render_template('success_failure.html', message=message)
 
-def check_if_element_null(l: List[Optional[Any]]) -> Optional[List[Any]]:
-    if (not all(l)):
-        return None
-
-    return l 
+def none_if_elem_none(l: List[Any]) -> Optional[List[Any]]: 
+    return l if all(l) else None # return none if any element is none
 

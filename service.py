@@ -40,16 +40,25 @@ class Service:
 		
 		self.get_book_count()
 
-	def return_book(self, book_id, email):
-		print("Warning: book return not implemented")
+	def get_checkout_id(self, book_id, email):
 		book_exists = self.get_book(book_id) is not None
 		if not book_exists:
 			return f"Book {book_id} doesn't exist"
 
-		if self.book_available_for_checkout(book_id):
-			return f"Book {book_id} not checked out, cannot be returned"
+		if self.book_checked_out(book_id):
+			return f"Book {book_id} not checked out by anyone, cannot be returned"
 
 		return None
+
+	def return_book(self, checkout_id):
+		print("Warning: book return not implemented")
+
+		return None
+
+	def book_checked_out(self, book_id):
+		available_count = self.get_available_count(book_id)
+		total_count = self.repo.get_total_copy_count(book_id)
+		return total_count - available_count != 0
 
 	def checkout_book(self, book_id, loaner_email):
 		print("Warning: book checkout not implemented")
@@ -82,7 +91,7 @@ class Service:
 		rows = self.repo.get_book_list_display(page_number)
 		books = list(map(self.make_display_book, rows))
 
-		return utils.check_if_element_null(books)
+		return utils.none_if_elem_none(books)
 
 	def get_book(self, book_id) -> Optional[Book]:
 		rows = self.repo.get_book(book_id)
@@ -101,7 +110,7 @@ class Service:
 
 		books = list(map(self.make_display_book, rows))
 
-		return utils.check_if_element_null(books)
+		return utils.none_if_elem_none(books)
 
 	def get_book_loaners(self, book_id) -> Optional[List[ListDisplayUser]]:
 		rows = self.repo.get_book_loaners(book_id)
@@ -111,7 +120,7 @@ class Service:
 
 		users = list(map(self.make_display_user, rows))
 
-		return utils.check_if_element_null(users)
+		return utils.none_if_elem_none(users)
 
 	def get_available_count(self, book_id):
 		total_count = self.repo.get_total_copy_count(book_id)
