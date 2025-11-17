@@ -44,7 +44,9 @@ class Checkout:
 	book_copy_id: int
 
 class Service:
-	def __init__(self, repository: Repository) -> None:
+	def __init__(self, repository: Repository, logger) -> None:
+		self.logger = logger 
+
 		check_dotenv()
 		self.repo = repository
 		
@@ -80,11 +82,6 @@ class Service:
 			return "Failed to update book condition"
 
 		return None
-
-	def book_checked_out(self, book_id):
-		available_count = self.get_available_count(book_id)
-		total_count = self.repo.get_total_copy_count(book_id)
-		return total_count - available_count != 0
 
 	def checkout_book(self, book_id, loaner_email):
 		if not self.book_available_for_checkout(book_id):
@@ -199,8 +196,8 @@ class Service:
 	def make_display_book(self, r: Row) -> Optional[ListDisplayBook]:
 		try:
 			book_id = r.book_id
-			available_count = self.get_available_count(book_id)
 			available = self.book_available_for_checkout(book_id)
+			available_count = self.get_available_count(book_id)
 
 			return ListDisplayBook(
 				book_id,

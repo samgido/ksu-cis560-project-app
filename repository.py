@@ -186,6 +186,7 @@ class Repository:
 		rows = self.get_rows(sql)
 
 		if(len(rows) == 0):
+			print("Issue with get checked copy count")
 			return 0
 
 		return int(rows[0].count)
@@ -199,6 +200,7 @@ class Repository:
 		rows = self.get_rows(sql)
 
 		if (len(rows) == 0):
+			print("Issue with get total copy count")
 			return 0
 
 		return int(rows[0].count)

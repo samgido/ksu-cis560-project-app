@@ -10,10 +10,10 @@
 	<a href="{{ url_for('book_details', book_id=book.book_id) }}">
 		{{ book.title }}
 	</a>
+	<p>
+		{% if book.available %}{{ book.available_count }} cop{% if book.available_count == 1 %}y{% else %}ies{% endif %} available{% else %}No copies available{% endif %}
+	</p>
 
-	<p>Genre: {{ book.genre }}</p>
-
-	<p>Available: {% if book.available %}Y{% else %}N{% endif %}</p>
 	</div>
 {% endfor %}
 

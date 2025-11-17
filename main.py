@@ -5,11 +5,11 @@ import utils
 from service import Service
 import math
 
+app = flask.Flask(__name__)
+
 repository = Repository()
 global service
-service = Service(repository)
-
-app = flask.Flask(__name__)
+service = Service(repository, app.logger)
 
 @app.route("/")
 def index():
@@ -123,7 +123,7 @@ def books(page_number):
 
     page_count = math.ceil(book_count / utils.PAGE_SIZE)
 
-    books = service.repo.get_book_list_display(page_number)
+    books = service.get_books_list_display(page_number)
 
     return render_template('books.html', 
         page_number=page_number, 
