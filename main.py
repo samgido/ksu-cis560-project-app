@@ -113,7 +113,7 @@ def return_book():
         return render_template('book_loaners.html', book_id=book_id, users=users)
 
     if email is None and book_id is None:
-        return utils.render_success_failure("Neither arg given, showing form for user email input")
+        return render_template('get_user.html')
 
     return utils.render_success_failure(error or "Book returned successfully")
 

@@ -16,11 +16,15 @@ input {
 	align-items: baseline;
 }
 
-.header_nav_buttons_div {
+.header_div {
 	display: flex;
 	justify-content: space-between;
 	align-items: baseline;
 	margin: 0% 0.8% 0% 0.2%;
+}
+
+.header_nav_buttons_div {
+	display: flex;
 }
 
 .form div {
