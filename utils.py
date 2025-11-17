@@ -1,7 +1,10 @@
+from typing import Optional, List, Any
 from flask import render_template
 import pyodbc
 import dotenv 
 import os 
+
+PAGE_SIZE = 32
 
 def get_env_or_exit(env_name: str):
     val = os.getenv(env_name)
@@ -25,3 +28,7 @@ def check_dotenv():
 
 def render_success_failure(message):
 	return render_template('success_failure.html', message=message)
+
+def none_if_elem_none(l: List[Any]) -> Optional[List[Any]]: 
+    return l if all(l) else None # return none if any element is none
+

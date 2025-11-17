@@ -1,0 +1,21 @@
+{% extends 'base.html' %}
+{% block content %}
+	<img src="{{ book.cover_img_url }}"/>
+	<p>{{ book.title }}</p>
+
+	<div>
+		<p>{{ book.available_count }} / {{ book.total_count }} copies available</p>
+		
+		{% if book.available %}
+			<a href="{{ url_for('checkout_book', book_id=book.book_id) }}">
+				<button>Checkout</button>
+			</a>
+		{% endif %}
+
+		{% if book.available_count < book.total_count %}
+			<a href="{{ url_for('return_book', book_id=book.book_id) }}">
+				<button>Return</button>
+			</a>
+		{% endif %}
+	</div>
+{% endblock %}
