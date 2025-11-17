@@ -101,9 +101,11 @@ class Service:
 		return None
 
 	def remove_customer(self, email) -> Optional[str]:
-		print("Warning: remove customer not implemented")
-		if not self.repo.get_num_accounts(email):
+		if self.repo.get_num_accounts(email) == 0:
 			return f"Email {email} does not belong to a customer"
+
+		if len(self.repo.get_users_checked_books(email)) > 0:
+			return f"User has checked out books"
 
 		return None
 

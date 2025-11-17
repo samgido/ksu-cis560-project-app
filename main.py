@@ -15,14 +15,14 @@ service = Service(repository, app.logger)
 def index():
     return render_template('index.html')
 
-@app.route("/remove_customer", methods=['POST', 'GET'])
-def remove_customer():
+@app.route("/disable_library_card", methods=['POST', 'GET'])
+def disable_library_card():
     if request.method == "POST":
         email = request.form.get('email')
 
-        error = None
+        error = service.remove_customer(email)
 
-        return utils.render_success_failure(error or "Customer successfully removed")
+        return utils.render_success_failure(error or "Library card successfully disabled")
 
     return render_template('remove_customer.html')
 

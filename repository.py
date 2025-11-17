@@ -96,7 +96,7 @@ class Repository:
 		"""
 		rows = self.get_rows(sql)
 
-		if (len(rows) == 0):
+		if len(rows) == 0:
 			print("Warning: get book count returned no rows")
 			return 0
 
@@ -109,7 +109,12 @@ class Repository:
 		where Customer.EmailAddress = N'{email}';
 		"""
 		rows = self.get_rows(sql)
-		return rows
+
+		if len(rows) == 0:
+			print("Warning: get_num_accounts returned no rows")
+			return 0
+
+		return int(rows[0].count)
 
 	def get_users_checked_books(self, email):
 		sql=f"""\
