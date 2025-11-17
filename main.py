@@ -30,11 +30,11 @@ def remove_customer():
 def create_customer():
     if request.method == "POST":
         email = request.form.get('email')
-        fname = request.form.get('fname')
-        lname = request.form.get('lname')
-        print(f"Create customer request for customer {email}, ({lname}, {fname})")
+        first_name = request.form.get('fname')
+        last_name = request.form.get('lname')
+        print(f"Create customer request for customer {email}, ({last_name}, {first_name})")
 
-        error = service.create_customer(email, fname, lname)
+        error = service.create_customer(email, first_name, last_name)
 
         return utils.render_success_failure(error or "Customer created successfully")
 
