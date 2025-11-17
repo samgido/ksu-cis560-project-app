@@ -1,7 +1,7 @@
 # KSU CIS560 project app
 
 ## Setup
-First, run [initial_data.sql](https://github.com/user-attachments/files/23419091/db.sql) in an instance of SQL Server to our mock data into a database.
+First, download [database_creation.zip](https://github.com/user-attachments/files/23589062/database_creation.zip), run the .sql script then the python script to load our mock data into a database. 
 
 Next, create a .env file in the base directory with the SQL connection string in it, contents should look something like this
 ```
