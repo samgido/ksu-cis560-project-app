@@ -141,25 +141,6 @@ def book_details(book_id):
 
     return render_template('book_details.html', book=book)
 
-@app.route("/checkout_details/<int:checkout_id>")
-def checkout_details(checkout_id):
-    conditions = service.conditions
-    checkout = service.get_checkout(checkout_id)
-
-    if checkout is None:
-        return utils.render_success_failure("Could not find checkout")
-
-    book = service.get_book(checkout.book_id)
-
-    if book is None:
-        return utils.render_success_failure("Could not find book")
-
-    return render_template('checkout_details.html', 
-        conditions=conditions,
-        checkout=checkout,
-        book=book
-    )
-
 app.run(debug=True)
 
 service.dispose()

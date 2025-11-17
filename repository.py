@@ -5,6 +5,32 @@ class Repository:
 		check_dotenv()
 		self.conn = create_database_connection()
 
+	def create_checkout(self, email, book_id):
+		sql=f"""\
+		declare @BestCopy int = (
+			select top 1 BookCopy.BookCopyID
+			from BookCopy 
+				inner join BookCopyCondition on BookCopyCondition.ConditionID = BookCopy.ConditionID
+			where BookCopy.BookID = {book_id}
+			order by BookCopyCondition.ConditionID asc
+		);
+
+		declare @CardID int = (
+			select LibraryCard.LibraryCardID
+			from LibraryCard
+				inner join Customer on Customer.CustomerID = LibraryCard.CustomerID
+			where Customer.EmailAddress = N'{email}'
+		);
+
+		declare @Today date = getdate();
+		declare @DueDate date = dateadd(day, 14, @Today);
+
+		insert into Checkout(BookCopyID, LenderLibraryCardID, CheckoutDate, DueDate, DateReturned)
+		values (@BestCopy, @CardID, @Today, @DueDate, null);
+		"""
+		rows_affected = self.get_rows_affected(sql)
+		return rows_affected
+
 	def update_condition(self, book_copy_id, condition):
 		sql=f"""\
 		declare @ConditionID int;
@@ -19,7 +45,6 @@ class Repository:
 			ConditionID = @ConditionID
 		where BookCopy.BookCopyID = {book_copy_id};
 		"""
-		print(condition)
 		rows_affected = self.get_rows_affected(sql)
 		return rows_affected
 
@@ -38,13 +63,14 @@ class Repository:
 				inner join BookCopy on BookCopy.BookCopyID = Checkout.BookCopyID
 				inner join LibraryCard on LibraryCard.LibraryCardID = Checkout.LenderLibraryCardId
 				inner join Customer on Customer.CustomerID = LibraryCard.CustomerID
+			where Checkout.DateReturned is null
 		)
 		select
 			CheckoutCte.CheckoutDate as checkout_date,
 			CheckoutCte.DueDate as due_date,
 			CheckoutCte.BookID as book_id,
 			BookCopyCondition.Condition as condition,
-			cast(iif(GETDATE() > CheckoutCte.DueDate, 1, 0) as bit) as overdue,
+			cast(iif(getdate() > CheckoutCte.DueDate, 1, 0) as bit) as overdue,
 			CheckoutCte.CheckoutID as checkout_id,
 			CheckoutCte.BookCopyID as book_copy_id
 		from CheckoutCte
@@ -123,7 +149,7 @@ class Repository:
 		sql=f"""\
 		update Checkout
 		set 
-			DateReturned = GETDATE()
+			DateReturned = getdate()
 		where Checkout.CheckoutID = {checkout_id}
 		"""
 		rows_affected = self.get_rows_affected(sql)
@@ -214,6 +240,7 @@ class Repository:
 	def get_rows(self, query: str):
 		cursor = self.conn.cursor()
 		cursor.execute(query)
+
 		rows = cursor.fetchall()
 		cursor.close()
 
@@ -223,6 +250,7 @@ class Repository:
 		cursor = self.conn.cursor()
 		cursor.execute(query)
 		self.conn.commit()
+
 		rows_affected = cursor.rowcount;
 		cursor.close()
 

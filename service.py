@@ -69,23 +69,15 @@ class Service:
 		if (len(rows) == 0):
 			return None
 
+		print(rows[0].checkout_id)
+
 		return self.make_checkout(rows[0])
 
-	def get_checkout_id(self, book_id, email):
-		book_exists = self.get_book(book_id) is not None
-		if not book_exists:
-			return f"Book {book_id} doesn't exist"
-
-		if self.book_checked_out(book_id):
-			return f"Book {book_id} not checked out by anyone, cannot be returned"
-
-		return None
-
 	def return_book(self, checkout_id, book_copy_id, condition):
-		if (self.repo.return_book(checkout_id) == 0):
+		if self.repo.return_book(checkout_id) == 0:
 			return "Failed to return book"
 
-		if (self.repo.update_condition(book_copy_id, condition) == 0):
+		if self.repo.update_condition(book_copy_id, condition) == 0:
 			return "Failed to update book condition"
 
 		return None
@@ -96,12 +88,14 @@ class Service:
 		return total_count - available_count != 0
 
 	def checkout_book(self, book_id, loaner_email):
-		print("Warning: book checkout not implemented")
 		if not self.book_available_for_checkout(book_id):
 			return f"Book {book_id} unavailable for checkout"
 
 		if not self.repo.get_customer(loaner_email):
 			return f"Email {loaner_email} doesn't belong to a customer"
+
+		if self.repo.create_checkout(loaner_email, book_id) == 0:
+			return f"Failed to create checkout"
 
 		return None
 
