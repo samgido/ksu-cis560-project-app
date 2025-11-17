@@ -1,6 +1,5 @@
-from os import kill
 from datetime import date
-from typing import Any, Optional, List
+from typing import Optional, List
 from pyodbc import Row
 from repository import Repository
 from utils import check_dotenv

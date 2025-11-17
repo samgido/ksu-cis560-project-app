@@ -1,5 +1,5 @@
 import flask 
-from flask import redirect, request, render_template
+from flask import request, render_template
 from repository import Repository
 import utils 
 from service import Service
