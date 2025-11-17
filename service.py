@@ -29,7 +29,7 @@ class Book:
 	total_count: int
 
 @dataclass
-class ListDisplayUser:
+class User:
 	customer_id: int
 	email: str
 	name: str
@@ -141,13 +141,13 @@ class Service:
 
 		return utils.none_if_elem_none(books)
 
-	def get_book_loaners(self, book_id) -> Optional[List[ListDisplayUser]]:
+	def get_book_loaners(self, book_id) -> Optional[List[User]]:
 		rows = self.repo.get_book_loaners(book_id)
 
 		if(len(rows) == 0):
 			return None
 
-		users = list(map(self.make_display_user, rows))
+		users = list(map(self.make_user, rows))
 
 		return utils.none_if_elem_none(users)
 
@@ -164,9 +164,9 @@ class Service:
 		rows = self.repo.get_customer(email)
 		return len(rows) > 0
 
-	def make_display_user(self, r: Row) -> Optional[ListDisplayUser]:
+	def make_user(self, r: Row) -> Optional[User]:
 		try:
-			return ListDisplayUser(
+			return User(
 				r.customer_id,
 				r.email,
 				r.name

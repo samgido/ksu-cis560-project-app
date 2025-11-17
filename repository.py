@@ -178,12 +178,10 @@ class Repository:
 
 	def get_checked_copy_count(self, book_id):
 		sql=f"""\
-		declare @BookID int = {book_id};
-
 		select count(distinct BookCopy.BookCopyID) as count
 		from Checkout
 			inner join BookCopy on BookCopy.BookCopyID = Checkout.BookCopyID
-		where Checkout.DateReturned is null and BookCopy.BookID = @BookID
+		where Checkout.DateReturned is null and BookCopy.BookID = {book_id}
 		"""
 		rows = self.get_rows(sql)
 
