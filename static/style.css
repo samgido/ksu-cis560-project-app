@@ -43,3 +43,12 @@ input {
 	width: 30px;
 	height: 40px;
 }
+
+.error_p {
+	background-color: red;
+	color: white;
+}
+
+.hidden {
+	display: none;
+}

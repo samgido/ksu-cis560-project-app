@@ -1,0 +1,26 @@
+{% extends 'base.html' %}
+{% block content %}
+	
+	<img src="{{ book.cover_img_url }}">
+	<p>{{ book.title }}</p>
+
+	<p>Condition: </p>
+	<select id="conditions" name="condition_list" form="return_book">
+		{% for condition in conditions %}
+		<option {% if checkout.condition == condition %} selected {% endif %} >{{ condition }}</option>
+		{% endfor %}
+	</select>
+
+	<p>Date checked out:</p>
+	<p> {{ checkout.checkout_date }}</p>
+
+	<p>Due date:</p>
+	<p {% if checkout.overdue %} class="error_p" {% endif %} > {{ checkout.due_date }}</p>
+
+	<form method="POST" id="return_book">
+		<input class="hidden" type="number" name="checkout_id" value="{{ checkout.checkout_id }}">
+		<input class="hidden" type="number" name="book_copy_id" value="{{ checkout.book_copy_id }}">
+		<input type="submit">
+	</form>
+
+{% endblock %}

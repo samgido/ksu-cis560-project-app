@@ -62,15 +62,39 @@ def checkout_book(book_id):
 
     return render_template('checkout_book.html', book=book)
 
-@app.route("/return_book/")
+@app.route("/return_book/", methods=['POST', 'GET'])
 def return_book():
+    if request.method == "POST":
+        condition = request.form.get('condition_list')
+        book_copy_id = request.form.get('book_copy_id')
+        checkout_id = request.form.get('checkout_id')
+
+        error = service.return_book(checkout_id, book_copy_id, condition)
+
+        return utils.render_success_failure(error or "Successfully returned book and updated condition")
+
     error = None
 
     email = request.args.get('email', None)
     book_id = request.args.get('book_id', None)
 
     if email is not None and book_id is not None:
-        return utils.render_success_failure(f"Checkout submitted for email {email} and book {book_id}")
+        conditions = service.conditions
+        checkout = service.get_checkout(email, book_id)
+
+        if checkout is None:
+            return utils.render_success_failure("Could not find checkout")
+
+        book = service.get_book(checkout.book_id)
+
+        if book is None:
+            return utils.render_success_failure("Could not find book")
+
+        return render_template('checkout_details.html', 
+            conditions=conditions,
+            checkout=checkout,
+            book=book
+        )
 
     if email is not None and book_id is None:
         books = service.get_user_checked_books(email)
@@ -115,7 +139,26 @@ def book_details(book_id):
         message = "Book not found"
         return utils.render_success_failure(message)
 
-    return render_template('view_book.html', book=book)
+    return render_template('book_details.html', book=book)
+
+@app.route("/checkout_details/<int:checkout_id>")
+def checkout_details(checkout_id):
+    conditions = service.conditions
+    checkout = service.get_checkout(checkout_id)
+
+    if checkout is None:
+        return utils.render_success_failure("Could not find checkout")
+
+    book = service.get_book(checkout.book_id)
+
+    if book is None:
+        return utils.render_success_failure("Could not find book")
+
+    return render_template('checkout_details.html', 
+        conditions=conditions,
+        checkout=checkout,
+        book=book
+    )
 
 app.run(debug=True)
 

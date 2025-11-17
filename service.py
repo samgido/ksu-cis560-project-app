@@ -1,4 +1,5 @@
 from os import kill
+from datetime import date
 from typing import Any, Optional, List
 from pyodbc import Row
 from repository import Repository
@@ -33,12 +34,42 @@ class ListDisplayUser:
 	email: str
 	name: str
 
+@dataclass
+class Checkout:
+	checkout_date: date
+	due_date: date
+	book_id: int
+	condition: str
+	overdue: bool
+	checkout_id: int
+	book_copy_id: int
+
 class Service:
 	def __init__(self, repository: Repository) -> None:
 		check_dotenv()
 		self.repo = repository
 		
 		self.get_book_count()
+
+		self.conditions = []
+		self.initialize_conditions()
+
+	def initialize_conditions(self):
+		rows = self.repo.get_condition_names()
+
+		try:
+			self.conditions = list(map(lambda r: r.condition, rows))
+		except:
+			print("Could not initialize condition names")
+			exit(1)
+
+	def get_checkout(self, email, book_id):
+		rows = self.repo.get_checkouts(email, book_id)
+
+		if (len(rows) == 0):
+			return None
+
+		return self.make_checkout(rows[0])
 
 	def get_checkout_id(self, book_id, email):
 		book_exists = self.get_book(book_id) is not None
@@ -50,8 +81,12 @@ class Service:
 
 		return None
 
-	def return_book(self, checkout_id):
-		print("Warning: book return not implemented")
+	def return_book(self, checkout_id, book_copy_id, condition):
+		if (self.repo.return_book(checkout_id) == 0):
+			return "Failed to return book"
+
+		if (self.repo.update_condition(book_copy_id, condition) == 0):
+			return "Failed to update book condition"
 
 		return None
 
@@ -150,7 +185,7 @@ class Service:
 		try: 
 			book_id = r.book_id
 			available = self.book_available_for_checkout(book_id)
-			available_count = self.repo.get_checked_copy_count(book_id)
+			available_count = self.get_available_count(book_id)
 			total_count = self.repo.get_total_copy_count(book_id)
 
 			return Book(
@@ -171,7 +206,7 @@ class Service:
 	def make_display_book(self, r: Row) -> Optional[ListDisplayBook]:
 		try:
 			book_id = r.book_id
-			available_count = self.repo.get_checked_copy_count(book_id)
+			available_count = self.get_available_count(book_id)
 			available = self.book_available_for_checkout(book_id)
 
 			return ListDisplayBook(
@@ -184,6 +219,21 @@ class Service:
 			)
 		except:
 			print("make_display_book was not given a row it needed")
+			return None
+
+	def make_checkout(self, r: Row) -> Optional[Checkout]:
+		try:
+			return Checkout(
+				r.checkout_date,
+				r.due_date,
+				r.book_id,
+				r.condition,
+				r.overdue,
+				r.checkout_id,
+				r.book_copy_id
+			)
+		except:
+			print("make_checkout was not given a row it needed")
 			return None
 
 	def dispose(self):

@@ -1,14 +1,70 @@
 from utils import check_dotenv, create_database_connection, PAGE_SIZE
 
-DB = "SharedData.dbo"
-
 class Repository:
 	def __init__(self):
 		check_dotenv()
 		self.conn = create_database_connection()
 
+	def update_condition(self, book_copy_id, condition):
+		sql=f"""\
+		declare @ConditionID int;
+		set @ConditionID = (
+			select top 1 BookCopyCondition.ConditionID
+			from BookCopyCondition
+			where BookCopyCondition.Condition = N'{condition}'
+		);
+
+		update BookCopy
+		set 
+			ConditionID = @ConditionID
+		where BookCopy.BookCopyID = {book_copy_id};
+		"""
+		print(condition)
+		rows_affected = self.get_rows_affected(sql)
+		return rows_affected
+
+	def get_checkouts(self, email, book_id):
+		sql=f"""\
+		with CheckoutCte(CheckoutID, LenderEmailAddress, BookID, CheckoutDate, DueDate, ConditionID, BookCopyID) as (
+			select 
+				Checkout.CheckoutID, 
+				Customer.EmailAddress as LenderEmailAddress, 
+				BookCopy.BookID,
+				Checkout.CheckoutDate,
+				Checkout.DueDate,
+				BookCopy.ConditionID,
+				Checkout.BookCopyID
+			from Checkout
+				inner join BookCopy on BookCopy.BookCopyID = Checkout.BookCopyID
+				inner join LibraryCard on LibraryCard.LibraryCardID = Checkout.LenderLibraryCardId
+				inner join Customer on Customer.CustomerID = LibraryCard.CustomerID
+		)
+		select
+			CheckoutCte.CheckoutDate as checkout_date,
+			CheckoutCte.DueDate as due_date,
+			CheckoutCte.BookID as book_id,
+			BookCopyCondition.Condition as condition,
+			cast(iif(GETDATE() > CheckoutCte.DueDate, 1, 0) as bit) as overdue,
+			CheckoutCte.CheckoutID as checkout_id,
+			CheckoutCte.BookCopyID as book_copy_id
+		from CheckoutCte
+			inner join BookCopyCondition on BookCopyCondition.ConditionID = CheckoutCte.ConditionID
+		where CheckoutCte.LenderEmailAddress = N'{email}' and CheckoutCte.BookID = {book_id}
+		order by CheckoutCte.CheckoutDate asc, CheckoutCte.BookID
+		"""
+		rows = self.get_rows(sql)
+		return rows
+
+	def get_condition_names(self):
+		sql=f"""\
+		select BookCopyCondition.Condition as condition
+		from BookCopyCondition
+		"""
+		rows = self.get_rows(sql)
+		return rows
+
 	def get_book_count(self):
-		sql="""\
+		sql=f"""\
 		select count(*) from Book;
 		"""
 		rows = self.get_rows(sql)
@@ -33,10 +89,10 @@ class Repository:
 		sql=f"""\
 		with CurrentCheckedBook(BookID, LenderEmailAddress) as (
 			select BookCopy.BookID, Customer.EmailAddress
-			from {DB}.Checkout
-				inner join {DB}.BookCopy on BookCopy.BookCopyID = Checkout.BookCopyID
-				inner join {DB}.LibraryCard on LibraryCard.LibraryCardID = Checkout.LenderLibraryCardId
-				inner join {DB}.Customer on Customer.CustomerID = LibraryCard.CustomerID
+			from Checkout
+				inner join BookCopy on BookCopy.BookCopyID = Checkout.BookCopyID
+				inner join LibraryCard on LibraryCard.LibraryCardID = Checkout.LenderLibraryCardId
+				inner join Customer on Customer.CustomerID = LibraryCard.CustomerID
 			where Checkout.DateReturned is null
 		),
 		BookInfo(BookID, ISBN, CoverImg, Title, Author, Genre) as (
@@ -44,9 +100,9 @@ class Repository:
 				Book.BookID, Book.ISBN, Book.CoverImg, Book.Title,
 				concat(Author.LastName, ',', Author.FirstName) as Author,
 				Genre.Name
-			from {DB}.Book
-				inner join {DB}.Author on Author.AuthorID = Book.AuthorID
-				inner join {DB}.Genre on Genre.GenreID = Book.GenreID
+			from Book
+				inner join Author on Author.AuthorID = Book.AuthorID
+				inner join Genre on Genre.GenreID = Book.GenreID
 		)
 		select 
 			BookInfo.BookID as book_id,
@@ -65,41 +121,21 @@ class Repository:
 
 	def return_book(self, checkout_id):
 		sql=f"""\
-		update {DB}.Checkout
-		set DateReturned = GETDATE()
+		update Checkout
+		set 
+			DateReturned = GETDATE()
 		where Checkout.CheckoutID = {checkout_id}
 		"""
-		_, rows_affected = self.get_rows_and_rows_affected(sql)
+		rows_affected = self.get_rows_affected(sql)
 		return rows_affected
-
-	def get_checkouts(self, email, book_id):
-		sql=f"""\
-		with CheckoutCte(CheckoutID, LenderEmailAddress, BookID, CheckoutDate) as (
-			select 
-				Checkout.CheckoutID, 
-				Customer.EmailAddress as LenderEmailAddress, 
-				BookCopy.BookID,
-				Checkout.CheckoutDate
-			from {DB}.Checkout
-				inner join {DB}.BookCopy on BookCopy.BookCopyID = Checkout.BookCopyID
-				inner join {DB}.LibraryCard on LibraryCard.LibraryCardID = Checkout.LenderLibraryCardId
-				inner join {DB}.Customer on Customer.CustomerID = LibraryCard.CustomerID
-		)
-		select CheckoutCte.CheckoutID
-		from CheckoutCte
-		where CheckoutCte.LenderEmailAddress = {email} and CheckoutCte.BookID = {book_id}
-		order by CheckoutCte.CheckoutDate asc
-		"""
-		rows = self.get_rows(sql)
-		return rows
 
 	def get_book_loaners(self, book_id):
 		sql=f"""\
 		with UserWithCheckedBook(CustomerID, BookID) as (
 			select LibraryCard.CustomerID, BookCopy.BookID
-			from {DB}.Checkout
-				inner join {DB}.LibraryCard on LibraryCard.LibraryCardID = Checkout.LenderLibraryCardId
-				inner join {DB}.BookCopy on BookCopy.BookCopyID = Checkout.BookCopyID
+			from Checkout
+				inner join LibraryCard on LibraryCard.LibraryCardID = Checkout.LenderLibraryCardId
+				inner join BookCopy on BookCopy.BookCopyID = Checkout.BookCopyID
 			where Checkout.DateReturned is null
 		)
 		select 
@@ -107,8 +143,8 @@ class Repository:
 			Customer.EmailAddress as email,
 			concat(Customer.LastName, ',', Customer.FirstName) as name
 		from UserWithCheckedBook
-			inner join {DB}.Customer on Customer.CustomerID = UserWithCheckedBook.CustomerID
-		where UserWithCheckedBook.BookID = {book_id};
+			inner join Customer on Customer.CustomerID = UserWithCheckedBook.CustomerID
+		where UserWithCheckedBook.BookID = {book_id}
 		order by Customer.LastName, Customer.FirstName, Customer.CustomerID
 		"""
 		rows = self.get_rows(sql)
@@ -116,10 +152,12 @@ class Repository:
 
 	def get_checked_copy_count(self, book_id):
 		sql=f"""\
+		declare @BookID int = {book_id};
+
 		select count(distinct BookCopy.BookCopyID) as count
-		from {DB}.Checkout
-			inner join {DB}.BookCopy on BookCopy.BookCopyID = Checkout.BookCopyID
-		where Checkout.DateReturned is null and BookCopy.BookID = {book_id}
+		from Checkout
+			inner join BookCopy on BookCopy.BookCopyID = Checkout.BookCopyID
+		where Checkout.DateReturned is null and BookCopy.BookID = @BookID
 		"""
 		rows = self.get_rows(sql)
 
@@ -131,7 +169,7 @@ class Repository:
 	def get_total_copy_count(self, book_id):
 		sql=f"""\
 		select count(distinct BookCopy.BookCopyID) as count
-		from {DB}.BookCopy
+		from BookCopy
 		where BookCopy.BookID = {book_id}
 		"""
 		rows = self.get_rows(sql)
@@ -148,8 +186,8 @@ class Repository:
 			Book.CoverImg as cover_img_url, 
 			Book.Title as title, 
 			Genre.Name as genre
-		from {DB}.Book
-			inner join {DB}.Genre on Genre.GenreID = Book.GenreID
+		from Book
+			inner join Genre on Genre.GenreID = Book.GenreID
 		order by Book.Title asc
 		offset ({PAGE_SIZE} * ({page_number} - 1)) rows fetch next {PAGE_SIZE} rows only;
 		"""
@@ -165,9 +203,9 @@ class Repository:
 			concat(Author.LastName, ',', Author.FirstName) as author,
 			Book.Title as title,
 			Genre.Name as genre
-		from {DB}.Book
-			inner join {DB}.Genre on Genre.GenreID = Book.GenreID
-			inner join {DB}.Author on Author.AuthorID = Book.AuthorID
+		from Book
+			inner join Genre on Genre.GenreID = Book.GenreID
+			inner join Author on Author.AuthorID = Book.AuthorID
 		where Book.BookID = {book_id}
 		"""
 		rows = self.get_rows(sql)
@@ -181,14 +219,14 @@ class Repository:
 
 		return rows
 
-	def get_rows_and_rows_affected(self, query: str):
+	def get_rows_affected(self, query: str):
 		cursor = self.conn.cursor()
 		cursor.execute(query)
-		rows = cursor.fetchall()
+		self.conn.commit()
 		rows_affected = cursor.rowcount;
 		cursor.close()
 
-		return rows, rows_affected
+		return rows_affected
 
 	def dispose(self):
 		self.conn.close()
