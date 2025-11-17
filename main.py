@@ -19,14 +19,10 @@ def index():
 def remove_customer():
     if request.method == "POST":
         email = request.form.get('email')
-        print(f"Remove customer request for customer {email}")
 
-        message = f"Success: customer {email} removed"
+        error = None
 
-        if not service.email_belongs_to_customer(email):
-            message = f"Failure: email {email} does not belong to a customer"
-
-        return utils.render_success_failure(message)
+        return utils.render_success_failure(error or "Customer successfully removed")
 
     return render_template('remove_customer.html')
 
@@ -73,8 +69,6 @@ def return_book():
 
         return utils.render_success_failure(error or "Successfully returned book and updated condition")
 
-    error = None
-
     email = request.args.get('email', None)
     book_id = request.args.get('book_id', None)
 
@@ -115,7 +109,7 @@ def return_book():
     if email is None and book_id is None:
         return render_template('get_user.html')
 
-    return utils.render_success_failure(error or "Book returned successfully")
+    return utils.render_success_failure("Book returned successfully")
 
 @app.route("/books/<int:page_number>")
 def books(page_number):
@@ -135,9 +129,8 @@ def books(page_number):
 def book_details(book_id):
     book = service.get_book(book_id)
 
-    if book == None:
-        message = "Book not found"
-        return utils.render_success_failure(message)
+    if book is None:
+        return utils.render_success_failure("Book not found")
 
     return render_template('book_details.html', book=book)
 

@@ -64,17 +64,15 @@ class Service:
 			print("Could not initialize condition names")
 			exit(1)
 
-	def get_checkout(self, email, book_id):
+	def get_checkout(self, email, book_id) -> Optional[Checkout]:
 		rows = self.repo.get_checkouts(email, book_id)
 
-		if (len(rows) == 0):
+		if len(rows) == 0:
 			return None
-
-		print(rows[0].checkout_id)
 
 		return self.make_checkout(rows[0])
 
-	def return_book(self, checkout_id, book_copy_id, condition):
+	def return_book(self, checkout_id, book_copy_id, condition) -> Optional[str]:
 		if self.repo.return_book(checkout_id) == 0:
 			return "Failed to return book"
 
@@ -83,11 +81,11 @@ class Service:
 
 		return None
 
-	def checkout_book(self, book_id, loaner_email):
+	def checkout_book(self, book_id, loaner_email) -> Optional[str]:
 		if not self.book_available_for_checkout(book_id):
 			return f"Book {book_id} unavailable for checkout"
 
-		if not self.repo.get_customer(loaner_email):
+		if not self.repo.get_num_accounts(loaner_email):
 			return f"Email {loaner_email} doesn't belong to a customer"
 
 		if self.repo.create_checkout(loaner_email, book_id) == 0:
@@ -95,21 +93,21 @@ class Service:
 
 		return None
 
-	def create_customer(self, email, first_name, last_name):
+	def create_customer(self, email, first_name, last_name) -> Optional[str]:
 		print("Warning: create customer not implemented")
-		if self.repo.get_customer(email):
+		if self.repo.get_num_accounts(email):
 			return f"Email {email} already belongs to a customer"
 
 		return None
 
-	def remove_customer(self, email):
+	def remove_customer(self, email) -> Optional[str]:
 		print("Warning: remove customer not implemented")
-		if not self.repo.get_customer(email):
+		if not self.repo.get_num_accounts(email):
 			return f"Email {email} does not belong to a customer"
 
 		return None
 
-	def get_book_count(self):
+	def get_book_count(self) -> int:
 		return self.repo.get_book_count()
 
 	def get_books_list_display(self, page_number) -> Optional[List[ListDisplayBook]]:
@@ -121,16 +119,15 @@ class Service:
 	def get_book(self, book_id) -> Optional[Book]:
 		rows = self.repo.get_book(book_id)
 
-		if (len(rows) == 0):
+		if len(rows) == 0:
 			return None
 
-		row = rows[0]
-		return self.make_book(row)
+		return self.make_book(rows[0])
 
 	def get_user_checked_books(self, email) -> Optional[List[ListDisplayBook]]:
 		rows = self.repo.get_users_checked_books(email)
 
-		if (len(rows) == 0):
+		if len(rows) == 0:
 			return None
 
 		books = list(map(self.make_display_book, rows))
@@ -140,24 +137,24 @@ class Service:
 	def get_book_loaners(self, book_id) -> Optional[List[User]]:
 		rows = self.repo.get_book_loaners(book_id)
 
-		if(len(rows) == 0):
+		if len(rows) == 0:
 			return None
 
 		users = list(map(self.make_user, rows))
 
 		return utils.none_if_elem_none(users)
 
-	def get_available_count(self, book_id):
+	def get_available_count(self, book_id) -> int:
 		total_count = self.repo.get_total_copy_count(book_id)
 		checked_count = self.repo.get_checked_copy_count(book_id)
 
 		return total_count - checked_count
 
-	def book_available_for_checkout(self, book_id):
+	def book_available_for_checkout(self, book_id) -> bool:
 		return self.get_available_count(book_id) > 0
 
-	def email_belongs_to_customer(self, email):
-		rows = self.repo.get_customer(email)
+	def email_belongs_to_customer(self, email) -> bool:
+		rows = self.repo.get_num_accounts(email)
 		return len(rows) > 0
 
 	def make_user(self, r: Row) -> Optional[User]:

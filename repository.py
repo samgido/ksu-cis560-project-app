@@ -76,7 +76,7 @@ class Repository:
 		from CheckoutCte
 			inner join BookCopyCondition on BookCopyCondition.ConditionID = CheckoutCte.ConditionID
 		where CheckoutCte.LenderEmailAddress = N'{email}' and CheckoutCte.BookID = {book_id}
-		order by CheckoutCte.CheckoutDate asc, CheckoutCte.BookID
+		order by CheckoutCte.CheckoutDate asc, CheckoutCte.BookID;
 		"""
 		rows = self.get_rows(sql)
 		return rows
@@ -84,14 +84,15 @@ class Repository:
 	def get_condition_names(self):
 		sql=f"""\
 		select BookCopyCondition.Condition as condition
-		from BookCopyCondition
+		from BookCopyCondition;
 		"""
 		rows = self.get_rows(sql)
 		return rows
 
 	def get_book_count(self):
 		sql=f"""\
-		select count(*) from Book;
+		select count(*) as count
+		from Book;
 		"""
 		rows = self.get_rows(sql)
 
@@ -99,14 +100,13 @@ class Repository:
 			print("Warning: get book count returned no rows")
 			return 0
 
-		book_count = int(rows[0][0])
-		return book_count
+		return int(rows[0].count)
 
-	def get_customer(self, email):
+	def get_num_accounts(self, email):
 		sql=f"""\
-		select count(*) 
+		select count(distinct Customer.CustomerID) as count 
 		from Customer 
-		where Customer.EmailAddress = N'{email}'
+		where Customer.EmailAddress = N'{email}';
 		"""
 		rows = self.get_rows(sql)
 		return rows
@@ -140,7 +140,7 @@ class Repository:
 		from CurrentCheckedBook
 			inner join BookInfo on BookInfo.BookID = CurrentCheckedBook.BookID
 		where CurrentCheckedBook.LenderEmailAddress = N'{email}'
-		order by BookInfo.ISBN
+		order by BookInfo.ISBN;
 		"""
 		rows = self.get_rows(sql)
 		return rows
@@ -150,7 +150,7 @@ class Repository:
 		update Checkout
 		set 
 			DateReturned = getdate()
-		where Checkout.CheckoutID = {checkout_id}
+		where Checkout.CheckoutID = {checkout_id};
 		"""
 		rows_affected = self.get_rows_affected(sql)
 		return rows_affected
@@ -171,7 +171,7 @@ class Repository:
 		from UserWithCheckedBook
 			inner join Customer on Customer.CustomerID = UserWithCheckedBook.CustomerID
 		where UserWithCheckedBook.BookID = {book_id}
-		order by Customer.LastName, Customer.FirstName, Customer.CustomerID
+		order by Customer.LastName, Customer.FirstName, Customer.CustomerID;
 		"""
 		rows = self.get_rows(sql)
 		return rows
@@ -181,7 +181,7 @@ class Repository:
 		select count(distinct BookCopy.BookCopyID) as count
 		from Checkout
 			inner join BookCopy on BookCopy.BookCopyID = Checkout.BookCopyID
-		where Checkout.DateReturned is null and BookCopy.BookID = {book_id}
+		where Checkout.DateReturned is null and BookCopy.BookID = {book_id};
 		"""
 		rows = self.get_rows(sql)
 
@@ -195,7 +195,7 @@ class Repository:
 		sql=f"""\
 		select count(distinct BookCopy.BookCopyID) as count
 		from BookCopy
-		where BookCopy.BookID = {book_id}
+		where BookCopy.BookID = {book_id};
 		"""
 		rows = self.get_rows(sql)
 
@@ -232,7 +232,7 @@ class Repository:
 		from Book
 			inner join Genre on Genre.GenreID = Book.GenreID
 			inner join Author on Author.AuthorID = Book.AuthorID
-		where Book.BookID = {book_id}
+		where Book.BookID = {book_id};
 		"""
 		rows = self.get_rows(sql)
 		return rows
