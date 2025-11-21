@@ -56,6 +56,18 @@ class Service:
 		self.conditions = []
 		self.initialize_conditions()
 
+	def get_book_popularity(self, begin_date, end_date):
+		pass
+
+	def get_customer_activity(self, begin_date, end_date):
+		pass
+
+	def get_overdue_behavior(self, begin_date, end_date):
+		pass
+
+	def get_genre_circulation(self, begin_date, end_date):
+		pass
+
 	def initialize_conditions(self):
 		rows = self.repo.get_condition_names()
 

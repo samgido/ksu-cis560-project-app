@@ -1,15 +1,25 @@
+import dateparser
+import datetime
 import flask 
+from enum import Enum
 from flask import request, render_template
 from repository import Repository
 import utils 
 from service import Service
 import math
 
+
 app = flask.Flask(__name__)
 
 repository = Repository()
 global service
 service = Service(repository, app.logger)
+
+class AggregatingQueries(Enum):
+    book_popularity = ('Book Popularity', service.get_book_popularity)
+    customer_activity = ('Customer Activity', service.get_customer_activity)
+    overdue_behavior = ('Overdue Behavior', service.get_overdue_behavior)
+    genre_circulation = ('Genre Circulation', service.get_genre_circulation)
 
 @app.route("/")
 def index():
@@ -133,6 +143,27 @@ def book_details(book_id):
         return utils.render_success_failure("Book not found")
 
     return render_template('book_details.html', book=book)
+
+@app.route("/aggregating_queries", methods=['POST', 'GET'])
+def aggregating_queries():
+    if request.method == 'POST':
+        def parse_form_date(date_str):
+            date = dateparser.parse(date_str) 
+            if date is None:
+                return datetime.datetime.now().date()
+            return date.date()
+
+        query = request.form.get('query')
+        begin_date = request.form.get('begin_date')
+        end_date = request.form.get('end_date')
+
+        print(f"Begin date: {parse_form_date(begin_date)}")
+        print(f"Begin date: {parse_form_date(end_date)}")
+
+        return ""
+
+    queries = [x.value[0] for _, x in AggregatingQueries.__members__.items()]
+    return render_template('aggregating_query_input.html', queries=queries)
 
 app.run(debug=True)
 
