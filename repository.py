@@ -5,6 +5,63 @@ class Repository:
 		check_dotenv()
 		self.conn = create_database_connection()
 
+	def get_user(self, email):
+		sql=f"""\
+		select 
+			Customer.CustomerID as customer_id,
+			Customer.EmailAddress as email,
+			concat(Customer.LastName, ',', Customer.FirstName) as name,
+			LibraryCard.Inactive as card_inactive
+		from Customer
+			inner join LibraryCard on LibraryCard.CustomerID = Customer.CustomerID
+		where Customer.EmailAddress = N'{email}'
+		"""
+		rows = self.get_rows(sql)
+		return rows
+
+	def create_customer(self, email, first_name, last_name):
+		sql=f"""\
+		begin try
+		insert into Customer(EmailAddress, FirstName, LastName) 
+		values (N'{email}', N'{first_name}', N'{last_name}');
+		end try 
+		begin catch end catch
+
+		declare @Customer int = (
+			select Customer.CustomerID
+			from Customer 
+			where Customer.EmailAddress = N'{email}'
+		);
+
+		merge LibraryCard
+		using (select @Customer) as C(CustomerID)
+			on LibraryCard.CustomerID = C.CustomerID
+		when matched
+			then update 
+			set Inactive = 0
+		when not matched 
+			then insert (CustomerID, Inactive) 
+			values (C.CustomerID, 0);
+		"""
+		rows_affected = self.get_rows_affected(sql)
+		return rows_affected
+
+	def disable_library_card(self, email):
+		sql=f"""\
+		declare @CardID int = (
+			select LibraryCard.LibraryCardID
+			from LibraryCard
+				inner join Customer on Customer.CustomerID = LibraryCard.CustomerID
+			where Customer.EmailAddress = N'{email}'
+		);
+
+		update LibraryCard
+		set Inactive = ~Inactive
+		where LibraryCard.LibraryCardID = @CardID
+		"""
+		rows_affected = self.get_rows_affected(sql)
+		return rows_affected
+
 	def create_checkout(self, email, book_id):
 		sql=f"""\
 		declare @BestCopy int = (
@@ -96,7 +153,7 @@ class Repository:
 		"""
 		rows = self.get_rows(sql)
 
-		if (len(rows) == 0):
+		if len(rows) == 0:
 			print("Warning: get book count returned no rows")
 			return 0
 
@@ -109,7 +166,12 @@ class Repository:
 		where Customer.EmailAddress = N'{email}';
 		"""
 		rows = self.get_rows(sql)
-		return rows
+
+		if len(rows) == 0:
+			print("Warning: get_num_accounts returned no rows")
+			return 0
+
+		return int(rows[0].count)
 
 	def get_users_checked_books(self, email):
 		sql=f"""\
@@ -157,8 +219,8 @@ class Repository:
 
 	def get_book_loaners(self, book_id):
 		sql=f"""\
-		with UserWithCheckedBook(CustomerID, BookID) as (
-			select LibraryCard.CustomerID, BookCopy.BookID
+		with UserWithCheckedBook(CustomerID, BookID, Inactive) as (
+			select LibraryCard.CustomerID, BookCopy.BookID, LibraryCard.Inactive
 			from Checkout
 				inner join LibraryCard on LibraryCard.LibraryCardID = Checkout.LenderLibraryCardId
 				inner join BookCopy on BookCopy.BookCopyID = Checkout.BookCopyID
@@ -167,7 +229,8 @@ class Repository:
 		select 
 			Customer.CustomerID as customer_id,
 			Customer.EmailAddress as email,
-			concat(Customer.LastName, ',', Customer.FirstName) as name
+			concat(Customer.LastName, ',', Customer.FirstName) as name,
+			UserWithCheckedBook.Inactive as card_inactive
 		from UserWithCheckedBook
 			inner join Customer on Customer.CustomerID = UserWithCheckedBook.CustomerID
 		where UserWithCheckedBook.BookID = {book_id}
