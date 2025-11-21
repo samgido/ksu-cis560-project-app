@@ -1,0 +1,27 @@
+{% extends 'base.html' %}
+{% block content %}
+Genre circulation
+
+<table>
+	<thead>
+		<tr>
+			<th scope="col">Year</th>
+			<th scope="col">Month</th>
+			<th scope="col">Genre</th>
+			<th scope="col">Checkout count</th>
+			<th scope="col">Checkout count (all-time)</th>
+		</tr>
+	</thead>
+<tbody>
+{% for row in data_rows %}
+	<tr>
+		<th>{{ row.year }}</th>
+		<td>{{ row.month }}</th>
+		<td>{{ row.genre_name }}</th>
+		<td>{{ row.period_checkout_count }}</th>
+		<td>{{ row.lifetime_checkout_count }}</th>
+	</tr>
+{% endfor %}
+</tbody>
+</table>
+{% endblock %}

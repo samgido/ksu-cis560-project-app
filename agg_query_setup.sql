@@ -14,8 +14,8 @@ WITH PeriodCheckout AS (
         B.BookID,
         COUNT(*) AS PeriodCheckouts
     FROM Checkout CO
-    JOIN BookCopy BC ON CO.BookCopyID = BC.BookCopyID
-    JOIN Book B ON B.BookID = BC.BookID
+        JOIN BookCopy BC ON CO.BookCopyID = BC.BookCopyID
+        JOIN Book B ON B.BookID = BC.BookID
     WHERE CO.CheckoutDate BETWEEN @FirstDate AND @LastDate
     GROUP BY
         YEAR(CO.CheckoutDate),
@@ -27,30 +27,30 @@ LifetimeCheckout AS (
         B.BookID,
         COUNT(*) AS LifetimeCheckouts
     FROM Checkout CO
-    JOIN BookCopy BC ON CO.BookCopyID = BC.BookCopyID
-    JOIN Book B ON B.BookID = BC.BookID
+        JOIN BookCopy BC ON CO.BookCopyID = BC.BookCopyID
+        JOIN Book B ON B.BookID = BC.BookID
     GROUP BY B.BookID
 )
 SELECT
-    PC.Year,
-    PC.Month,
-    B.BookID,
-    B.Title,
-    PC.PeriodCheckouts,
-    LiC.LifetimeCheckouts,
+    PC.Year AS year,
+    PC.Month AS month,
+    B.BookID AS book_id,
+    B.Title AS title,
+    PC.PeriodCheckouts AS period_checkouts,
+    LiC.LifetimeCheckouts AS lifetime_checkouts,
     RANK() OVER (
         PARTITION BY PC.Year, PC.Month
         ORDER BY PC.PeriodCheckouts DESC
-    ) AS PeriodRank
+    ) AS period_rank
 FROM PeriodCheckout PC
-JOIN LifetimeCheckout LiC ON LiC.BookID = PC.BookID
-JOIN BookCopy BC ON BC.BookID = PC.BookID
-JOIN Book B ON B.BookID = BC.BookID
+    JOIN LifetimeCheckout LiC ON LiC.BookID = PC.BookID
+    JOIN BookCopy BC ON BC.BookID = PC.BookID
+    JOIN Book B ON B.BookID = BC.BookID
 Group BY B.BookID, PC.Year, PC.Month, B.Title, PC.PeriodCheckouts, LiC.LifetimeCheckouts
 ORDER BY
     pc.Year,
     pc.Month,
-    PeriodRank,
+    period_rank,
     B.BookID;
 GO
 
@@ -67,7 +67,7 @@ WITH PeriodCustomer AS (
         lc.CustomerID,
         COUNT(*) AS PeriodCheckouts
     FROM Checkout co
-    JOIN LibraryCard lc ON co.LenderLibraryCardID = lc.LibraryCardID
+        JOIN LibraryCard lc ON co.LenderLibraryCardID = lc.LibraryCardID
     WHERE co.CheckoutDate BETWEEN @FirstDate AND @LastDate
     GROUP BY
         YEAR(co.CheckoutDate),
@@ -79,27 +79,27 @@ LifetimeCustomer AS (
         lc.CustomerID,
         COUNT(*) AS LifetimeCheckouts
     FROM Checkout co
-    JOIN LibraryCard lc ON co.LenderLibraryCardID = lc.LibraryCardID
+        JOIN LibraryCard lc ON co.LenderLibraryCardID = lc.LibraryCardID
     GROUP BY lc.CustomerID
 )
 SELECT
-    pc.Year,
-    pc.Month,
-    c.CustomerID,
-    c.FirstName + ' ' + c.LastName AS CustomerName,
-    pc.PeriodCheckouts,
-    lc2.LifetimeCheckouts,
+    pc.Year AS year,
+    pc.Month AS month,
+    c.CustomerID AS customer_id,
+    c.FirstName + ' ' + c.LastName AS customer_name,
+    pc.PeriodCheckouts AS period_checkouts,
+    lc2.LifetimeCheckouts AS lifetime_checkouts,
     RANK() OVER (
         PARTITION BY pc.Year, pc.Month
         ORDER BY pc.PeriodCheckouts DESC
-    ) AS PeriodRank
+    ) AS period_rank
 FROM PeriodCustomer pc
-JOIN LifetimeCustomer lc2 ON lc2.CustomerID = pc.CustomerID
-JOIN Customer c ON c.CustomerID = pc.CustomerID
+    JOIN LifetimeCustomer lc2 ON lc2.CustomerID = pc.CustomerID
+    JOIN Customer c ON c.CustomerID = pc.CustomerID
 ORDER BY
     pc.Year,
     pc.Month,
-    PeriodRank,
+    period_rank,
     c.CustomerID;
 GO
 
@@ -116,9 +116,8 @@ WITH PeriodCustomer AS (
         LC.CustomerID,
         COUNT(*) AS PeriodOverdueCount
     FROM Checkout CO
-    JOIN LibraryCard LC ON CO.LenderLibraryCardID = LC.LibraryCardID
-    WHERE co.CheckoutDate BETWEEN @FirstDate AND @LastDate
-    AND CO.DateReturned > Co.DueDate
+        JOIN LibraryCard LC ON CO.LenderLibraryCardID = LC.LibraryCardID
+    WHERE co.CheckoutDate BETWEEN @FirstDate AND @LastDate AND CO.DateReturned > Co.DueDate
     GROUP BY
         YEAR(CO.CheckoutDate),
         MONTH(CO.CheckoutDate),
@@ -129,28 +128,28 @@ LifetimeCustomer AS (
         LC.CustomerID,
         COUNT(*) AS LifetimeOverdueCount
     FROM Checkout CO
-    JOIN LibraryCard LC ON CO.LenderLibraryCardID = LC.LibraryCardID
+        JOIN LibraryCard LC ON CO.LenderLibraryCardID = LC.LibraryCardID
     Where CO.DateReturned > CO.DueDate
     GROUP BY LC.CustomerID
 )
 SELECT
-    PC.Year,
-    PC.Month,
-    C.CustomerID,
-    C.FirstName + ' ' + C.LastName AS CustomerName,
-    PC.PeriodOverdueCount,
-    LiC.LifetimeOverdueCount,
+    PC.Year AS year,
+    PC.Month AS month,
+    C.CustomerID AS customer_id,
+    C.FirstName + ' ' + C.LastName AS customer_name,
+    PC.PeriodOverdueCount AS period_overdue_count,
+    LiC.LifetimeOverdueCount AS lifetime_overdue_count,
     RANK() OVER (
         PARTITION BY PC.Year, PC.Month
         ORDER BY PC.PeriodOverdueCount DESC
-    ) AS PeriodRank
+    ) AS period_rank
 FROM PeriodCustomer PC
-JOIN LifetimeCustomer LiC ON LiC.CustomerID = PC.CustomerID
-JOIN Customer C ON C.CustomerID = PC.CustomerID
+    JOIN LifetimeCustomer LiC ON LiC.CustomerID = PC.CustomerID
+    JOIN Customer C ON C.CustomerID = PC.CustomerID
 ORDER BY
     PC.Year,
     PC.Month,
-    PeriodRank,
+    period_rank,
     C.CustomerID;
 GO
 
@@ -167,9 +166,9 @@ WITH PeriodGenre AS (
         g.GenreID,
         COUNT(*) AS PeriodCheckoutCount
     FROM Checkout co
-    JOIN BookCopy bc ON co.BookCopyID = bc.BookCopyID
-    JOIN Book b ON bc.BookID = b.BookID
-    JOIN Genre g ON b.GenreID = g.GenreID
+        JOIN BookCopy bc ON co.BookCopyID = bc.BookCopyID
+        JOIN Book b ON bc.BookID = b.BookID
+        JOIN Genre g ON b.GenreID = g.GenreID
     WHERE co.CheckoutDate BETWEEN @FirstDate AND @LastDate
     GROUP BY
         YEAR(co.CheckoutDate),
@@ -181,28 +180,28 @@ LifetimeGenre AS (
         g.GenreID,
         COUNT(*) AS LifetimeCheckoutCount
     FROM Checkout co
-    JOIN BookCopy bc ON co.BookCopyID = bc.BookCopyID
-    JOIN Book b ON bc.BookID = b.BookID
-    JOIN Genre g ON b.GenreID = g.GenreID
+        JOIN BookCopy bc ON co.BookCopyID = bc.BookCopyID
+        JOIN Book b ON bc.BookID = b.BookID
+        JOIN Genre g ON b.GenreID = g.GenreID
     GROUP BY g.GenreID
 )
 SELECT
-    pg.Year,
-    pg.Month,
-    g.GenreID,
-    g.Name AS GenreName,
-    pg.PeriodCheckoutCount,
-    lg.LifetimeCheckoutCount,
+    pg.Year AS year,
+    pg.Month AS month,
+    g.GenreID AS genre_id,
+    g.Name AS genre_name,
+    pg.PeriodCheckoutCount AS period_checkout_count,
+    lg.LifetimeCheckoutCount AS lifetime_checkout_count,
     RANK() OVER (
         PARTITION BY pg.Year, pg.Month
         ORDER BY pg.PeriodCheckoutCount DESC
-    ) AS PeriodRank
+    ) AS period_rank
 FROM PeriodGenre pg
-JOIN LifetimeGenre lg ON lg.GenreID = pg.GenreID
-JOIN Genre g ON g.GenreID = pg.GenreID
+    JOIN LifetimeGenre lg ON lg.GenreID = pg.GenreID
+    JOIN Genre g ON g.GenreID = pg.GenreID
 ORDER BY
     pg.Year,
     pg.Month,
-    PeriodRank,
+    period_rank,
     g.GenreID;
 GO

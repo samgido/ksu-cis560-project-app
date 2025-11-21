@@ -5,6 +5,13 @@ class Repository:
 		check_dotenv()
 		self.conn = create_database_connection()
 
+	def run_aggregating_query(self, query_name, begin_date, end_date):
+		sql=f"""\
+		exec {query_name} @FirstDate = '{begin_date}', @LastDate = '{end_date}';
+		"""
+		rows = self.get_rows(sql)
+		return rows
+
 	def get_user(self, email):
 		sql=f"""\
 		select 

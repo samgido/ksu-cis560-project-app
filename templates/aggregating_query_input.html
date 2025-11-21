@@ -1,10 +1,10 @@
 {% extends 'base.html' %}
 {% block content %}
 
-<form name="form" method="POST" class="form">
+<form id="form" name="form" method="POST" class="form">
 	<div>
 	<label>Select Query:</label>
-	<select name="query" form="query">
+	<select name="query" form="form">
 		{% for query in queries %}
 		<option>{{ query }}</option>
 		{% endfor %}

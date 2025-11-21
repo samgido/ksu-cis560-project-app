@@ -15,11 +15,12 @@ repository = Repository()
 global service
 service = Service(repository, app.logger)
 
-class AggregatingQueries(Enum):
-    book_popularity = ('Book Popularity', service.get_book_popularity)
-    customer_activity = ('Customer Activity', service.get_customer_activity)
-    overdue_behavior = ('Overdue Behavior', service.get_overdue_behavior)
-    genre_circulation = ('Genre Circulation', service.get_genre_circulation)
+AGGREGATING_QUERIES = [
+    'Book Popularity',
+    'Customer Activity',
+    'Overdue Behavior',
+    'Genre Circulation'
+]
 
 @app.route("/")
 def index():
@@ -147,23 +148,21 @@ def book_details(book_id):
 @app.route("/aggregating_queries", methods=['POST', 'GET'])
 def aggregating_queries():
     if request.method == 'POST':
-        def parse_form_date(date_str):
-            date = dateparser.parse(date_str) 
-            if date is None:
-                return datetime.datetime.now().date()
-            return date.date()
+        query_str = request.form.get('query')
+        begin_date_str = request.form.get('begin_date')
+        end_date_str = request.form.get('end_date')
 
-        query = request.form.get('query')
-        begin_date = request.form.get('begin_date')
-        end_date = request.form.get('end_date')
+        if not query_str in AGGREGATING_QUERIES or begin_date_str is None or end_date_str is None:
+            return utils.render_success_failure(f"Some form field(s) were not valid")
 
-        print(f"Begin date: {parse_form_date(begin_date)}")
-        print(f"Begin date: {parse_form_date(end_date)}")
+        query_name = query_str.replace(' ', '') + 'Proc'
+        query_data = service.get_special_query_data(query_name, begin_date_str, end_date_str)
 
-        return ""
+        template_name = query_str.lower().replace(' ', '_') + '.html'
 
-    queries = [x.value[0] for _, x in AggregatingQueries.__members__.items()]
-    return render_template('aggregating_query_input.html', queries=queries)
+        return render_template(template_name, data_rows=query_data)
+
+    return render_template('aggregating_query_input.html', queries=AGGREGATING_QUERIES)
 
 app.run(debug=True)
 

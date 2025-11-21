@@ -56,17 +56,9 @@ class Service:
 		self.conditions = []
 		self.initialize_conditions()
 
-	def get_book_popularity(self, begin_date, end_date):
-		pass
-
-	def get_customer_activity(self, begin_date, end_date):
-		pass
-
-	def get_overdue_behavior(self, begin_date, end_date):
-		pass
-
-	def get_genre_circulation(self, begin_date, end_date):
-		pass
+	def get_special_query_data(self, query_name, begin_date, end_date):
+		rows = self.repo.run_aggregating_query(query_name, begin_date, end_date)
+		return rows
 
 	def initialize_conditions(self):
 		rows = self.repo.get_condition_names()
@@ -148,7 +140,7 @@ class Service:
 		rows = self.repo.get_book_list_display(page_number)
 		books = list(map(self.make_display_book, rows))
 
-		return utils.none_if_elem_none(books)
+		return utils.all_or_none(books)
 
 	def get_book(self, book_id) -> Optional[Book]:
 		rows = self.repo.get_book(book_id)
@@ -166,7 +158,7 @@ class Service:
 
 		books = list(map(self.make_display_book, rows))
 
-		return utils.none_if_elem_none(books)
+		return utils.all_or_none(books)
 
 	def get_book_loaners(self, book_id) -> Optional[List[User]]:
 		rows = self.repo.get_book_loaners(book_id)
@@ -176,7 +168,7 @@ class Service:
 
 		users = list(map(self.make_user, rows))
 
-		return utils.none_if_elem_none(users)
+		return utils.all_or_none(users)
 
 	def get_available_count(self, book_id) -> int:
 		total_count = self.repo.get_total_copy_count(book_id)
