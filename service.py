@@ -32,6 +32,7 @@ class User:
 	customer_id: int
 	email: str
 	name: str
+	card_inactive: bool
 
 @dataclass
 class Checkout:
@@ -94,18 +95,37 @@ class Service:
 		return None
 
 	def create_customer(self, email, first_name, last_name) -> Optional[str]:
-		print("Warning: create customer not implemented")
-		if self.repo.get_num_accounts(email):
-			return f"Email {email} already belongs to a customer"
+		error = ""
 
-		return None
+		rows = self.repo.get_user(email)
+		if len(rows) > 0:
+			error += f"Email {email} already belongs to a customer, their card has been activated.\n"
 
-	def remove_customer(self, email) -> Optional[str]:
-		if self.repo.get_num_accounts(email) == 0:
-			return f"Email {email} does not belong to a customer"
+		self.repo.create_customer(email, first_name, last_name)
+
+		return error
+
+	def disable_library_card(self, email) -> Optional[str]:
+		rows = self.repo.get_user(email)
+
+		if len(rows) == 0:
+			return f"Error: Email doesn't belong to a customer"
+
+		user = self.make_user(rows[0])
+
+		if user is None:
+			return f"Error occurred reading user"
+
+		if user.card_inactive:
+			return f"Card is already inactive"
 
 		if len(self.repo.get_users_checked_books(email)) > 0:
-			return f"User has checked out books"
+			return f"Error: User has checked out books"
+
+		rows_affected = self.repo.disable_library_card(email)
+
+		if rows_affected == 0:
+			return "Error occurred disabling card"
 
 		return None
 
@@ -157,14 +177,15 @@ class Service:
 
 	def email_belongs_to_customer(self, email) -> bool:
 		rows = self.repo.get_num_accounts(email)
-		return len(rows) > 0
+		return rows > 0
 
 	def make_user(self, r: Row) -> Optional[User]:
 		try:
 			return User(
 				r.customer_id,
 				r.email,
-				r.name
+				r.name,
+				r.card_inactive
 			)
 		except:
 			print("make_display_user was not given a row it needed")

@@ -20,11 +20,11 @@ def disable_library_card():
     if request.method == "POST":
         email = request.form.get('email')
 
-        error = service.remove_customer(email)
-
+        error = service.disable_library_card(email)
+        
         return utils.render_success_failure(error or "Library card successfully disabled")
 
-    return render_template('remove_customer.html')
+    return render_template('disable_library_card.html')
 
 @app.route("/create_customer", methods=['POST', 'GET'])
 def create_customer():
