@@ -45,9 +45,7 @@ class Checkout:
 	book_copy_id: int
 
 class Service:
-	def __init__(self, repository: Repository, logger) -> None:
-		self.logger = logger 
-
+	def __init__(self, repository: Repository) -> None:
 		check_dotenv()
 		self.repo = repository
 		

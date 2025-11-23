@@ -1,5 +1,5 @@
 import flask 
-from flask import request, render_template
+from flask import redirect, request, render_template
 from repository import Repository
 import utils 
 from service import Service
@@ -8,8 +8,7 @@ import math
 app = flask.Flask(__name__)
 
 repository = Repository()
-global service
-service = Service(repository, app.logger)
+service = Service(repository)
 
 analytics_queries = utils.get_analytics_query_names()
 
@@ -19,7 +18,7 @@ if analytics_queries is None:
 
 @app.route("/")
 def index():
-    return render_template('index.html')
+    return redirect('/books/1')
 
 @app.route("/disable_library_card", methods=['POST', 'GET'])
 def disable_library_card():
@@ -64,7 +63,7 @@ def checkout_book(book_id):
 
     return render_template('checkout_book.html', book=book)
 
-@app.route("/return_book/", methods=['POST', 'GET'])
+@app.route("/return_book", methods=['POST', 'GET'])
 def return_book():
     if request.method == "POST":
         condition = request.form.get('condition_list')
