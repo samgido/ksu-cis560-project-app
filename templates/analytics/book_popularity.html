@@ -14,7 +14,7 @@ Book popularity
 	</thead>
 <tbody>
 {% for row in data_rows %}
-	<tr>
+	<tr {% if row.month % 2 == 0 %} class="table_grouping_alt" {% endif %}>
 		<th>{{ row.year }}</th>
 		<td>{{ row.month }}</th>
 		<td>{{ row.title }}</th>

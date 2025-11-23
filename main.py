@@ -1,13 +1,9 @@
-import dateparser
-import datetime
 import flask 
-from enum import Enum
 from flask import request, render_template
 from repository import Repository
 import utils 
 from service import Service
 import math
-
 
 app = flask.Flask(__name__)
 
@@ -15,12 +11,11 @@ repository = Repository()
 global service
 service = Service(repository, app.logger)
 
-AGGREGATING_QUERIES = [
-    'Book Popularity',
-    'Customer Activity',
-    'Overdue Behavior',
-    'Genre Circulation'
-]
+analytics_queries = utils.get_analytics_query_names()
+
+if analytics_queries is None:
+    print("Couldn't read analytics query names")
+    exit(1) 
 
 @app.route("/")
 def index():
@@ -147,12 +142,22 @@ def book_details(book_id):
 
 @app.route("/analytics", methods=['POST', 'GET'])
 def analytics():
+    if analytics_queries is None:
+        return utils.render_success_failure("Server failure; could not read analytics query names")
+
+    analytics_queries_proper = list(map(utils.snake_case_to_proper, analytics_queries))
+
     if request.method == 'POST':
         query_str = request.form.get('query')
         begin_date_str = request.form.get('begin_date')
         end_date_str = request.form.get('end_date')
 
-        if not query_str in AGGREGATING_QUERIES or begin_date_str is None or end_date_str is None:
+        if analytics_queries is None:
+            return utils.render_success_failure("Server failure; could not read analytics query names")
+
+        analytics_queries_proper = list(map(utils.snake_case_to_proper, analytics_queries))
+
+        if not query_str in analytics_queries_proper or begin_date_str is None or end_date_str is None:
             return utils.render_success_failure(f"Some form field(s) were not valid")
 
         query_name = query_str.replace(' ', '') + 'Proc'
@@ -162,7 +167,7 @@ def analytics():
 
         return render_template(template_name, data_rows=query_data)
 
-    return render_template('analytics/analytics_input.html', queries=AGGREGATING_QUERIES)
+    return render_template('analytics/analytics_input.html', queries=analytics_queries_proper)
 
 app.run(debug=True)
 

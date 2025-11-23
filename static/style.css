@@ -15,6 +15,14 @@ th, td {
 	text-align: center;
 }
 
+tr {
+	background-color: rgb(95 144 232);
+}
+
+.table_grouping_alt {
+	background-color: rgb(105 154 242);
+}
+
 .page_number_div {
 	display: flex;
 	justify-content: space-evenly;
