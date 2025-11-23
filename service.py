@@ -56,8 +56,8 @@ class Service:
 		self.conditions = []
 		self.initialize_conditions()
 
-	def get_special_query_data(self, query_name, begin_date, end_date):
-		rows = self.repo.run_aggregating_query(query_name, begin_date, end_date)
+	def get_analytics_data(self, query_name, begin_date, end_date):
+		rows = self.repo.run_analytics(query_name, begin_date, end_date)
 		return rows
 
 	def initialize_conditions(self):

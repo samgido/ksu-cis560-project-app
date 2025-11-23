@@ -145,8 +145,8 @@ def book_details(book_id):
 
     return render_template('book_details.html', book=book)
 
-@app.route("/aggregating_queries", methods=['POST', 'GET'])
-def aggregating_queries():
+@app.route("/analytics", methods=['POST', 'GET'])
+def analytics():
     if request.method == 'POST':
         query_str = request.form.get('query')
         begin_date_str = request.form.get('begin_date')
@@ -156,13 +156,13 @@ def aggregating_queries():
             return utils.render_success_failure(f"Some form field(s) were not valid")
 
         query_name = query_str.replace(' ', '') + 'Proc'
-        query_data = service.get_special_query_data(query_name, begin_date_str, end_date_str)
+        query_data = service.get_analytics_data(query_name, begin_date_str, end_date_str)
 
-        template_name = query_str.lower().replace(' ', '_') + '.html'
+        template_name = "analytics/" + query_str.lower().replace(' ', '_') + '.html'
 
         return render_template(template_name, data_rows=query_data)
 
-    return render_template('aggregating_query_input.html', queries=AGGREGATING_QUERIES)
+    return render_template('analytics/analytics_input.html', queries=AGGREGATING_QUERIES)
 
 app.run(debug=True)
 

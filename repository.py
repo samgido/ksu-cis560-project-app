@@ -5,7 +5,7 @@ class Repository:
 		check_dotenv()
 		self.conn = create_database_connection()
 
-	def run_aggregating_query(self, query_name, begin_date, end_date):
+	def run_analytics(self, query_name, begin_date, end_date):
 		sql=f"""\
 		exec {query_name} @FirstDate = '{begin_date}', @LastDate = '{end_date}';
 		"""
