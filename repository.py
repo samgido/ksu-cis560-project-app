@@ -146,7 +146,7 @@ class Repository:
 		return rows
 
 	def get_condition_names(self):
-		sql=f"""\
+		sql="""\
 		select BookCopyCondition.Condition as condition
 		from BookCopyCondition;
 		"""
@@ -154,7 +154,7 @@ class Repository:
 		return rows
 
 	def get_book_count(self):
-		sql=f"""\
+		sql="""\
 		select count(*) as count
 		from Book;
 		"""
@@ -321,7 +321,7 @@ class Repository:
 		cursor.execute(query)
 		self.conn.commit()
 
-		rows_affected = cursor.rowcount;
+		rows_affected = cursor.rowcount
 		cursor.close()
 
 		return rows_affected

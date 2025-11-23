@@ -58,7 +58,7 @@ def checkout_book(book_id):
 
     book = service.get_book(book_id)
 
-    if book == None:
+    if book is None:
         message = "Book not found"
         return utils.render_success_failure(message)
 
@@ -157,8 +157,8 @@ def analytics():
 
         analytics_queries_proper = list(map(utils.snake_case_to_proper, analytics_queries))
 
-        if not query_str in analytics_queries_proper or begin_date_str is None or end_date_str is None:
-            return utils.render_success_failure(f"Some form field(s) were not valid")
+        if query_str not in analytics_queries_proper or begin_date_str is None or end_date_str is None:
+            return utils.render_success_failure("Some form field(s) were not valid")
 
         query_name = query_str.replace(' ', '') + 'Proc'
         query_data = service.get_analytics_data(query_name, begin_date_str, end_date_str)

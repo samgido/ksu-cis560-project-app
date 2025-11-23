@@ -5,8 +5,12 @@ description = ""
 readme = "README.md"
 requires-python = ">=3.12"
 dependencies = [
-    "dateparser>=1.2.2",
     "dotenv>=0.9.9",
     "flask>=3.1.2",
     "pyodbc>=5.2.0",
+]
+
+[dependency-groups]
+dev = [
+    "ruff>=0.14.6",
 ]

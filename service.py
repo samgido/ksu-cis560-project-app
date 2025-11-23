@@ -94,7 +94,7 @@ class Service:
 			return f"Email {loaner_email} doesn't belong to a customer"
 
 		if self.repo.create_checkout(loaner_email, book_id) == 0:
-			return f"Failed to create checkout"
+			return "Failed to create checkout"
 
 		return None
 
@@ -113,18 +113,18 @@ class Service:
 		rows = self.repo.get_user(email)
 
 		if len(rows) == 0:
-			return f"Error: Email doesn't belong to a customer"
+			return "Error: Email doesn't belong to a customer"
 
 		user = self.make_user(rows[0])
 
 		if user is None:
-			return f"Error occurred reading user"
+			return "Error occurred reading user"
 
 		if user.card_inactive:
-			return f"Card is already inactive"
+			return "Card is already inactive"
 
 		if len(self.repo.get_users_checked_books(email)) > 0:
-			return f"Error: User has checked out books"
+			return "Error: User has checked out books"
 
 		rows_affected = self.repo.disable_library_card(email)
 

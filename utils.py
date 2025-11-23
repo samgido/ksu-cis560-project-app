@@ -44,7 +44,7 @@ def get_analytics_query_names():
     if not templates_dir.is_dir():
         return None
 
-    query_names = [x.stem for x in templates_dir.iterdir() if x.is_file() and not x.stem in IGNORE]
+    query_names = [x.stem for x in templates_dir.iterdir() if x.is_file() and x.stem not in IGNORE]
     return query_names
 
 # snake_case -> Snake case
