@@ -56,6 +56,10 @@ class Service:
 		self.conditions = []
 		self.initialize_conditions()
 
+	def get_analytics_data(self, query_name, begin_date, end_date):
+		rows = self.repo.run_analytics(query_name, begin_date, end_date)
+		return rows
+
 	def initialize_conditions(self):
 		rows = self.repo.get_condition_names()
 
@@ -90,7 +94,7 @@ class Service:
 			return f"Email {loaner_email} doesn't belong to a customer"
 
 		if self.repo.create_checkout(loaner_email, book_id) == 0:
-			return f"Failed to create checkout"
+			return "Failed to create checkout"
 
 		return None
 
@@ -109,18 +113,18 @@ class Service:
 		rows = self.repo.get_user(email)
 
 		if len(rows) == 0:
-			return f"Error: Email doesn't belong to a customer"
+			return "Error: Email doesn't belong to a customer"
 
 		user = self.make_user(rows[0])
 
 		if user is None:
-			return f"Error occurred reading user"
+			return "Error occurred reading user"
 
 		if user.card_inactive:
-			return f"Card is already inactive"
+			return "Card is already inactive"
 
 		if len(self.repo.get_users_checked_books(email)) > 0:
-			return f"Error: User has checked out books"
+			return "Error: User has checked out books"
 
 		rows_affected = self.repo.disable_library_card(email)
 
@@ -136,7 +140,7 @@ class Service:
 		rows = self.repo.get_book_list_display(page_number)
 		books = list(map(self.make_display_book, rows))
 
-		return utils.none_if_elem_none(books)
+		return utils.all_or_none(books)
 
 	def get_book(self, book_id) -> Optional[Book]:
 		rows = self.repo.get_book(book_id)
@@ -154,7 +158,7 @@ class Service:
 
 		books = list(map(self.make_display_book, rows))
 
-		return utils.none_if_elem_none(books)
+		return utils.all_or_none(books)
 
 	def get_book_loaners(self, book_id) -> Optional[List[User]]:
 		rows = self.repo.get_book_loaners(book_id)
@@ -164,7 +168,7 @@ class Service:
 
 		users = list(map(self.make_user, rows))
 
-		return utils.none_if_elem_none(users)
+		return utils.all_or_none(users)
 
 	def get_available_count(self, book_id) -> int:
 		total_count = self.repo.get_total_copy_count(book_id)

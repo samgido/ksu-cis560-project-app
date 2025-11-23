@@ -1,0 +1,27 @@
+{% extends 'base.html' %}
+{% block content %}
+
+<form id="form" name="form" method="POST" class="form">
+	<div>
+	<label>Select Query:</label>
+	<select name="query" form="form">
+		{% for query in queries %}
+		<option>{{ query }}</option>
+		{% endfor %}
+	</select>
+	</div>	
+
+	<div>
+	<label>Begin date:</label>
+	<input type="date" name="begin_date">
+	</div>
+
+	<div>
+	<label>End date:</label>
+	<input type="date" name="end_date">
+	</div>
+
+	<input type="submit" name="submit">
+</form>
+
+{% endblock %}

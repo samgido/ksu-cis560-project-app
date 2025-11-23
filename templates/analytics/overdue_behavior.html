@@ -1,0 +1,27 @@
+{% extends 'base.html' %}
+{% block content %}
+Overdue behavior
+
+<table>
+	<thead>
+		<tr>
+			<th scope="col">Year</th>
+			<th scope="col">Month</th>
+			<th scope="col">Name</th>
+			<th scope="col">Overdue count</th>
+			<th scope="col">Overdue count (all-time)</th>
+		</tr>
+	</thead>
+<tbody>
+{% for row in data_rows %}
+	<tr {% if row.month % 2 == 0 %} class="table_grouping_alt" {% endif %}>
+		<th>{{ row.year }}</th>
+		<td>{{ row.month }}</th>
+		<td>{{ row.customer_name }}</th>
+		<td>{{ row.period_overdue_count }}</th>
+		<td>{{ row.lifetime_overdue_count }}</th>
+	</tr>
+{% endfor %}
+</tbody>
+</table>
+{% endblock %}

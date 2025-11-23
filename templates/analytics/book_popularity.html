@@ -1,0 +1,28 @@
+{% extends 'base.html' %}
+{% block content %}
+Book popularity
+
+<table>
+	<thead>
+		<tr>
+			<th scope="col">Year</th>
+			<th scope="col">Month</th>
+			<th scope="col">Book title</th>
+			<th scope="col">Checkout count</th>
+			<th scope="col">Checkout count (all-time)</th>
+		</tr>
+	</thead>
+<tbody>
+{% for row in data_rows %}
+	<tr {% if row.month % 2 == 0 %} class="table_grouping_alt" {% endif %}>
+		<th>{{ row.year }}</th>
+		<td>{{ row.month }}</th>
+		<td>{{ row.title }}</th>
+		<td>{{ row.period_checkouts }}</th>
+		<td>{{ row.lifetime_checkouts }}</th>
+	</tr>
+{% endfor %}
+</tbody>
+</table>
+
+{% endblock %}

@@ -10,6 +10,19 @@ input {
 	margin: 3px 5px;
 }
 
+th, td {
+	padding: 8px 10px;
+	text-align: center;
+}
+
+tr {
+	background-color: rgb(95 144 232);
+}
+
+.table_grouping_alt {
+	background-color: rgb(105 154 242);
+}
+
 .page_number_div {
 	display: flex;
 	justify-content: space-evenly;
@@ -19,11 +32,16 @@ input {
 .header_div {
 	display: flex;
 	justify-content: space-between;
-	align-items: baseline;
+	align-items: center;
 	margin: 0% 0.8% 0% 0.2%;
 }
 
 .header_nav_buttons_div {
+	display: flex;
+}
+
+.header_nav_buttons_div a {
+	align-content: center;
 	display: flex;
 }
 

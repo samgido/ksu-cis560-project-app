@@ -11,6 +11,12 @@ repository = Repository()
 global service
 service = Service(repository, app.logger)
 
+analytics_queries = utils.get_analytics_query_names()
+
+if analytics_queries is None:
+    print("Couldn't read analytics query names")
+    exit(1) 
+
 @app.route("/")
 def index():
     return render_template('index.html')
@@ -52,7 +58,7 @@ def checkout_book(book_id):
 
     book = service.get_book(book_id)
 
-    if book == None:
+    if book is None:
         message = "Book not found"
         return utils.render_success_failure(message)
 
@@ -133,6 +139,35 @@ def book_details(book_id):
         return utils.render_success_failure("Book not found")
 
     return render_template('book_details.html', book=book)
+
+@app.route("/analytics", methods=['POST', 'GET'])
+def analytics():
+    if analytics_queries is None:
+        return utils.render_success_failure("Server failure; could not read analytics query names")
+
+    analytics_queries_proper = list(map(utils.snake_case_to_proper, analytics_queries))
+
+    if request.method == 'POST':
+        query_str = request.form.get('query')
+        begin_date_str = request.form.get('begin_date')
+        end_date_str = request.form.get('end_date')
+
+        if analytics_queries is None:
+            return utils.render_success_failure("Server failure; could not read analytics query names")
+
+        analytics_queries_proper = list(map(utils.snake_case_to_proper, analytics_queries))
+
+        if query_str not in analytics_queries_proper or begin_date_str is None or end_date_str is None:
+            return utils.render_success_failure("Some form field(s) were not valid")
+
+        query_name = query_str.replace(' ', '') + 'Proc'
+        query_data = service.get_analytics_data(query_name, begin_date_str, end_date_str)
+
+        template_name = "analytics/" + query_str.lower().replace(' ', '_') + '.html'
+
+        return render_template(template_name, data_rows=query_data)
+
+    return render_template('analytics/analytics_input.html', queries=analytics_queries_proper)
 
 app.run(debug=True)
 
