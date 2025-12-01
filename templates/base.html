@@ -8,30 +8,33 @@
 <body>
 	<header>
 		<div class="header_div">
-			<p> Library app </p>
+			<div>
+				<h1>Library app </h1>
+				<p>Sam Gido, Ryan Black, Aidan McGlynn</p>
+			</div>
 
 			<div class="header_nav_buttons_div">
-			<a href="{{ url_for('create_customer') }}">
+			<a href="{{ url_for('view.create_customer') }}">
 				<button>
 					Create customer
 				</button>
 			</a>
-			<a href="{{ url_for('disable_library_card') }}">
+			<a href="{{ url_for('view.disable_library_card') }}">
 				<button>
 					Disable library card
 				</button>
 			</a>
-			<a href="{{ url_for('books', page_number=1) }}">
+			<a href="{{ url_for('view.books', page_number=1) }}">
 				<button>
 					See books
 				</button>
 			</a>
-			<a href="{{ url_for('return_book') }}">
+			<a href="{{ url_for('view.return_book') }}">
 				<button>
 					Return book
 				</button>
 			</a>
-			<a href="{{ url_for('analytics') }}">
+			<a href="{{ url_for('view.analytics') }}">
 				<button>
 					Analytics
 				</button>
