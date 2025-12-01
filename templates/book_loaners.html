@@ -5,7 +5,7 @@
 	<div class="list_display_div">
 		<p>{{ user.email }}</p>
 
-		<a href="{{ url_for('return_book', book_id=book_id, email=user.email) }}">
+		<a href="{{ url_for('view.return_book', book_id=book_id, email=user.email) }}">
 			<button>Return</button>
 		</a>
 	</div>
