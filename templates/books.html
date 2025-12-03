@@ -8,7 +8,7 @@
 	<img src="{{ book.cover_img_url }}" class="book_list_display_cover_img" />
 
 	<a href="{{ url_for('view.book_details', book_id=book.book_id) }}">
-		{{ book.title }}
+		<em>{{ book.title }}</em>
 	</a>
 	<p>
 		{% if book.available %}{{ book.available_count }} cop{% if book.available_count == 1 %}y{% else %}ies{% endif %} available{% else %}No copies available{% endif %}

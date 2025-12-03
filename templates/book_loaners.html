@@ -1,7 +1,7 @@
 {% extends 'base.html' %}
 {% block content %}
 
-<p>Loaners of {{ book.title }} by {{ book.author }}</p>
+<p>Loaners of <em>{{ book.title }}</em> by {{ book.author }}</p>
 
 {% for user in users %}
 	<div class="list_display_div">
