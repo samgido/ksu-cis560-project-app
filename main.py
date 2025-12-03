@@ -3,6 +3,7 @@ from repository import Repository
 from service import Service
 from view import View
 
+
 def create_app():
     app = flask.Flask(__name__)
 
@@ -13,5 +14,6 @@ def create_app():
     app.register_blueprint(view.blueprint)
     return app
 
-if __name__ == '__main__':
+
+if __name__ == "__main__":
     create_app().run(debug=True)
