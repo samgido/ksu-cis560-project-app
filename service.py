@@ -93,8 +93,10 @@ class Service:
         if not self.book_available_for_checkout(book_id):
             return f"Book {book_id} unavailable for checkout"
 
-        if not self.repo.get_num_accounts(loaner_email):
+        if not self.email_belongs_to_customer(loaner_email):
             return f"Email {loaner_email} doesn't belong to a customer"
+        elif not self.email_belongs_to_active_customer(loaner_email):
+            return f"Email {loaner_email} exists as a customer, but their library card isn't active"
 
         if self.repo.create_checkout(loaner_email, book_id) == 0:
             return "Failed to create checkout"
@@ -184,6 +186,10 @@ class Service:
 
     def email_belongs_to_customer(self, email) -> bool:
         rows = self.repo.get_num_accounts(email)
+        return rows > 0
+
+    def email_belongs_to_active_customer(self, email) -> bool:
+        rows = self.repo.get_num_active_accounts(email)
         return rows > 0
 
     def make_user(self, r: Row) -> Optional[User]:

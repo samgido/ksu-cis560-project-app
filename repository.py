@@ -181,6 +181,22 @@ class Repository:
 
         return int(rows[0].count)
 
+    def get_num_active_accounts(self, email):
+        sql = f"""\
+		select count(distinct Customer.CustomerID) as count
+		from Customer
+			inner join LibraryCard on LibraryCard.CustomerID = Customer.CustomerID
+		where Customer.EmailAddress = N'{email}' and LibraryCard.Inactive = 0;
+		"""
+        rows = self.get_rows(sql)
+
+        if len(rows) == 0:
+            print("Warning: get_num_accounts returned no rows")
+            return 0
+
+        return int(rows[0].count)
+
+
     def get_users_checked_books(self, email):
         sql = f"""\
 		with CurrentCheckedBook(BookID, LenderEmailAddress) as (

@@ -3,6 +3,7 @@ import utils
 import flask
 from flask import redirect, render_template, request
 
+
 class View:
     def __init__(self, service):
         self.service = service
@@ -24,17 +25,35 @@ class View:
     def setup_routes(self):
         # books
         self.blueprint.add_url_rule("/", view_func=self.index, methods=["GET"])
-        self.blueprint.add_url_rule("/books/<int:page_number>", view_func=self.books, methods=["GET"])
-        self.blueprint.add_url_rule("/book_details/<int:book_id>", view_func=self.book_details, methods=["GET"])
-        self.blueprint.add_url_rule("/checkout_book/<int:book_id>", view_func=self.checkout_book, methods=["GET", "POST"])
-        self.blueprint.add_url_rule("/return_book", view_func=self.return_book, methods=["GET", "POST"])
+        self.blueprint.add_url_rule(
+            "/books/<int:page_number>", view_func=self.books, methods=["GET"]
+        )
+        self.blueprint.add_url_rule(
+            "/book_details/<int:book_id>", view_func=self.book_details, methods=["GET"]
+        )
+        self.blueprint.add_url_rule(
+            "/checkout_book/<int:book_id>",
+            view_func=self.checkout_book,
+            methods=["GET", "POST"],
+        )
+        self.blueprint.add_url_rule(
+            "/return_book", view_func=self.return_book, methods=["GET", "POST"]
+        )
 
         # customers
-        self.blueprint.add_url_rule("/create_customer", view_func=self.create_customer, methods=["GET", "POST"])
-        self.blueprint.add_url_rule("/disable_library_card", view_func=self.disable_library_card, methods=["GET", "POST"])
+        self.blueprint.add_url_rule(
+            "/create_customer", view_func=self.create_customer, methods=["GET", "POST"]
+        )
+        self.blueprint.add_url_rule(
+            "/disable_library_card",
+            view_func=self.disable_library_card,
+            methods=["GET", "POST"],
+        )
 
         # analytics
-        self.blueprint.add_url_rule("/analytics", view_func=self.analytics, methods=["GET", "POST"])
+        self.blueprint.add_url_rule(
+            "/analytics", view_func=self.analytics, methods=["GET", "POST"]
+        )
 
     def index(self):
         return redirect("/books/1")
@@ -130,9 +149,7 @@ class View:
             book = self.service.get_book(book_id)
 
             if book is None:
-                return utils.render_success_failure(
-                    "Could not find book"
-                )
+                return utils.render_success_failure("Could not find book")
 
             return render_template("book_loaners.html", book=book, users=users)
 
@@ -146,7 +163,9 @@ class View:
             email = request.form.get("email")
             first_name = request.form.get("fname")
             last_name = request.form.get("lname")
-            print(f"Create customer request for customer {email}, ({last_name}, {first_name})")
+            print(
+                f"Create customer request for customer {email}, ({last_name}, {first_name})"
+            )
 
             error = self.service.create_customer(email, first_name, last_name)
 
