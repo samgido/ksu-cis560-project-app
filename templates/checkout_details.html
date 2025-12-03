@@ -1,10 +1,14 @@
 {% extends 'base.html' %}
 {% block content %}
 	
+	<h2>Book details</h2>
 	<img src="{{ book.cover_img_url }}">
-	<p>{{ book.title }}</p>
+	<p><em>{{ book.title }}</em></p>
+	<p>By {{ book.author }}</p>
 
-	<p>Condition: </p>
+	<h2>Checkout details</h2>
+
+	<p>Returned condition: </p>
 	<select id="conditions" name="condition_list" form="return_book">
 		{% for condition in conditions %}
 		<option {% if checkout.condition == condition %} selected {% endif %} >{{ condition }}</option>
@@ -20,7 +24,7 @@
 	<form method="POST" id="return_book">
 		<input class="hidden" type="number" name="checkout_id" value="{{ checkout.checkout_id }}">
 		<input class="hidden" type="number" name="book_copy_id" value="{{ checkout.book_copy_id }}">
-		<input type="submit">
+		<input type="submit" value="Return book">
 	</form>
 
 {% endblock %}

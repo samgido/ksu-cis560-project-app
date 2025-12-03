@@ -4,6 +4,7 @@ body {
 
 form {
 	padding: 1%;
+	background-color: rgb(95 144 232);
 }
 
 input {
@@ -17,6 +18,10 @@ th, td {
 
 tr {
 	background-color: rgb(95 144 232);
+}
+
+hr {
+	color: lightgrey;
 }
 
 .table_grouping_alt {

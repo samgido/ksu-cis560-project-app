@@ -1,13 +1,13 @@
 {% extends 'base.html' %}
 {% block content %}
 
-<p> Checking out {{ book.title }} </p>
+<p> Checking out <em>{{ book.title }}</em> by {{ book.author }}</p>
 <form method="POST" class="form">
 	<div>
 	<label for="email">Loaner's email:</label><br>
 	<input type="email" id="email" name="email"><br>
 	</div>
 
-	<input type="submit" name="Submit">
+	<input type="submit" name="Submit" value="Checkout">
 </form>
 {% endblock %}
