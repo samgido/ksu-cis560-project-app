@@ -1,11 +1,14 @@
 {% extends 'base.html' %}
 {% block content %}
 
+<p>Loaners of {{ book.title }} by {{ book.author }}</p>
+
 {% for user in users %}
 	<div class="list_display_div">
-		<p>{{ user.email }}</p>
+		<p>Name: {{ user.name }}</p>
+		<p>Email: {{ user.email }}</p>
 
-		<a href="{{ url_for('view.return_book', book_id=book_id, email=user.email) }}">
+		<a href="{{ url_for('view.return_book', book_id=book.book_id, email=user.email) }}">
 			<button>Return</button>
 		</a>
 	</div>

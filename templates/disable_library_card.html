@@ -1,11 +1,13 @@
 {% extends 'base.html' %}
 {% block content %}
+<h2>Disable Library Card</h2>
+<p>Enter customer's email address</p>
 <form method="POST" class="form">
 	<div>
 	<label for="email">Email:</label><br>
 	<input type="email" id="email" name="email"><br>
 	</div>
 
-	<input type="submit" name="Submit">
+	<input type="submit" name="Submit" value="Disable card">
 </form>
 {% endblock %}

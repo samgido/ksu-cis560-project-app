@@ -2,9 +2,10 @@
 {% block content %}
 	<img src="{{ book.cover_img_url }}"/>
 	<p>{{ book.title }}</p>
+	<p>By {{ book.author }}</p>
 
 	<div>
-		<p>{{ book.available_count }} / {{ book.total_count }} copies available</p>
+		<p>{{ book.available_count }} / {{ book.total_count }} copies available for checkout</p>
 		
 		{% if book.available %}
 			<a href="{{ url_for('view.checkout_book', book_id=book.book_id) }}">

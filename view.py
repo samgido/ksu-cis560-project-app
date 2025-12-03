@@ -127,7 +127,14 @@ class View:
                     "Book isn't checked out by any users"
                 )
 
-            return render_template("book_loaners.html", book_id=book_id, users=users)
+            book = self.service.get_book(book_id)
+
+            if book is None:
+                return utils.render_success_failure(
+                    "Could not find book"
+                )
+
+            return render_template("book_loaners.html", book=book, users=users)
 
         if email is None and book_id is None:
             return render_template("get_user.html")
