@@ -1,7 +1,11 @@
 {% extends 'base.html' %}
 {% block content %}
 
-<p>Enter customers's email address</p>
+{% if page_title %}
+<h2>{{ page_title }}</h2>
+{% endif %}
+
+<p>Enter customers's email address {% if instruction %} {{ instruction }} {% endif %}</p>
 
 <form method="GET">
 	<label>Email:</label>

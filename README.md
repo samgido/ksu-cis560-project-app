@@ -1,4 +1,4 @@
-# Library App
+# The Library Domain <image src="/static/favicon.ico"></image>
 By Sam Gido, Ryan Black, Aidan McGlynn 
 
 For CIS560 at KSU
