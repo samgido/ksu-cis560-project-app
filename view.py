@@ -154,7 +154,7 @@ class View:
             return render_template("book_loaners.html", book=book, users=users)
 
         if email is None and book_id is None:
-            return render_template("get_user.html")
+            return render_template("get_user.html", page_title="Return Book", instruction="to see their checked out books.")
 
         return utils.render_success_failure("Book returned successfully")
 
