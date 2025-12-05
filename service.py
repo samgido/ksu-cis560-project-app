@@ -201,10 +201,8 @@ class Service:
 
     def make_book(self, r: Row) -> Optional[Book]:
         try:
-            book_id = r.book_id
-            available = self.book_available_for_checkout(book_id)
-            available_count = self.get_available_count(book_id)
-            total_count = self.repo.get_total_copy_count(book_id)
+            total_count = r.total_copy_count
+            checked_count = r.checked_copy_count
 
             return Book(
                 r.book_id,
@@ -213,8 +211,8 @@ class Service:
                 r.author,
                 r.title,
                 r.genre,
-                available,
-                available_count,
+                checked_count < total_count,
+                total_count - checked_count,
                 total_count,
             )
         except:
@@ -223,12 +221,16 @@ class Service:
 
     def make_display_book(self, r: Row) -> Optional[ListDisplayBook]:
         try:
-            book_id = r.book_id
-            available = self.book_available_for_checkout(book_id)
-            available_count = self.get_available_count(book_id)
+            total_count = r.total_copy_count
+            checked_count = r.checked_copy_count
 
             return ListDisplayBook(
-                book_id, r.cover_img_url, r.title, r.genre, available, available_count
+                r.book_id, 
+                r.cover_img_url, 
+                r.title, 
+                r.genre, 
+                checked_count < total_count, 
+                total_count - checked_count
             )
         except:
             print("make_display_book was not given a row it needed")

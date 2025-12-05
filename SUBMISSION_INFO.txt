@@ -1,1 +1,23 @@
 --- Project Structure ---
+Python file descriptions:
+- main.py
+	Sets up and starts the Flask application
+- view.py
+	Routes URLs, renders pages
+- service.py
+	Handles business logic between View and Repository
+- repository.py 
+	Interacts with the database
+
+	Most queries are here, the rest are in 'Procedures.sql'
+- utils.py
+	Contains various helper functions
+- data-generator.py
+	Creates .csv files containing our mock data
+- data-loader.py
+	Loads data from data-generator into database
+
+Misc:
+'templates' directory contains Jinja templates
+
+Repository link: https://github.com/samgido/ksu-cis560-project-app/tree/code_submission

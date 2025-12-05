@@ -207,14 +207,26 @@ class Repository:
 				inner join Customer on Customer.CustomerID = LibraryCard.CustomerID
 			where Checkout.DateReturned is null
 		),
-		BookInfo(BookID, ISBN, CoverImg, Title, Author, Genre) as (
+		BookInfo(BookID, ISBN, CoverImg, Title, Author, Genre, CheckedCount, TotalCount) as (
 			select
 				Book.BookID, Book.ISBN, Book.CoverImg, Book.Title,
 				concat(Author.LastName, ',', Author.FirstName) as Author,
-				Genre.Name
+				Genre.Name,
+				count(distinct Checkout.CheckoutID) as CheckedCount,
+				count(distinct BookCopy.BookCopyID) as TotalCount
 			from Book
 				inner join Author on Author.AuthorID = Book.AuthorID
 				inner join Genre on Genre.GenreID = Book.GenreID
+				inner join BookCopy on BookCopy.BookID = Book.BookID
+				left join Checkout on Checkout.BookCopyID = BookCopy.BookCopyID and Checkout.DateReturned is null
+			group by 
+				Book.BookID, 
+				Book.ISBN, 
+				Book.CoverImg, 
+				Book.Title, 
+				Author.LastName, 
+				Author.FirstName, 
+				Genre.Name
 		)
 		select 
 			BookInfo.BookID as book_id,
@@ -222,7 +234,9 @@ class Repository:
 			BookInfo.CoverImg as cover_img_url,
 			BookInfo.Title as title,
 			BookInfo.Author as author,
-			BookInfo.Genre as genre
+			BookInfo.Genre as genre, 
+			BookInfo.CheckedCount as checked_copy_count,
+			BookInfo.TotalCount as total_copy_count
 		from CurrentCheckedBook
 			inner join BookInfo on BookInfo.BookID = CurrentCheckedBook.BookID
 		where CurrentCheckedBook.LenderEmailAddress = N'{email}'
@@ -230,6 +244,7 @@ class Repository:
 		"""
         rows = self.get_rows(sql)
         return rows
+        
 
     def return_book(self, checkout_id):
         sql = f"""\
@@ -298,9 +313,14 @@ class Repository:
 			Book.BookID as book_id, 
 			Book.CoverImg as cover_img_url, 
 			Book.Title as title, 
-			Genre.Name as genre
+			Genre.Name as genre,
+			count(distinct BookCopy.BookCopyID) as total_copy_count,
+			count(distinct Checkout.CheckoutID) as checked_copy_count
 		from Book
 			inner join Genre on Genre.GenreID = Book.GenreID
+			inner join BookCopy on BookCopy.BookID = Book.BookID
+			left join Checkout on Checkout.BookCopyID = BookCopy.BookCopyID and Checkout.DateReturned is null
+		group by Book.BookID, Book.CoverImg, Book.Title, Genre.Name
 		order by Book.Title asc
 		offset ({PAGE_SIZE} * ({page_number} - 1)) rows fetch next {PAGE_SIZE} rows only;
 		"""
@@ -315,11 +335,16 @@ class Repository:
 			Book.CoverImg as cover_img_url,
 			concat(Author.LastName, ',', Author.FirstName) as author,
 			Book.Title as title,
-			Genre.Name as genre
+			Genre.Name as genre,
+			count(distinct BookCopy.BookCopyID) as total_copy_count,
+			count(distinct Checkout.CheckoutID) as checked_copy_count
 		from Book
 			inner join Genre on Genre.GenreID = Book.GenreID
 			inner join Author on Author.AuthorID = Book.AuthorID
-		where Book.BookID = {book_id};
+			inner join BookCopy on BookCopy.BookID = Book.BookID
+			left join Checkout on Checkout.BookCopyID = BookCopy.BookCopyID and Checkout.DateReturned is null
+		where Book.BookID = {book_id}
+		group by Book.BookID, Book.ISBN, Book.CoverImg, Author.LastName, Author.FirstName, Book.Title, Genre.Name;
 		"""
         rows = self.get_rows(sql)
         return rows
