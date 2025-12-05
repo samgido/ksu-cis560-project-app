@@ -39,6 +39,9 @@ class View:
         self.blueprint.add_url_rule(
             "/return_book", view_func=self.return_book, methods=["GET", "POST"]
         )
+        self.blueprint.add_url_rule(
+            "/overdue_books", view_func=self.overdue_books, methods=["GET"]
+        )
 
         # customers
         self.blueprint.add_url_rule(
@@ -157,6 +160,14 @@ class View:
             return render_template("get_user.html", page_title="Return Book", instruction="to see their checked out books.")
 
         return utils.render_success_failure("Book returned successfully")
+
+    def overdue_books(self):
+        books = self.service.get_overdue_books()
+
+        if books is None:
+            return utils.render_success_failure("Could not get overdue books")
+
+        return render_template('overdue_books.html', books=books)
 
     def create_customer(self):
         if request.method == "POST":

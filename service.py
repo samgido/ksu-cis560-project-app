@@ -49,6 +49,12 @@ class Checkout:
     book_copy_id: int
 
 
+@dataclass
+class OverdueBook:
+    book: ListDisplayBook
+    loaner_email: str
+
+
 class Service:
     def __init__(self, repository: Repository) -> None:
         check_dotenv()
@@ -175,6 +181,13 @@ class Service:
 
         return utils.all_or_none(users)
 
+    def get_overdue_books(self) -> Optional[List[OverdueBook]]:
+        rows = self.repo.get_overdue_books()
+
+        books = list(map(self.make_overdue_book, rows))
+
+        return utils.all_or_none(books)
+
     def get_available_count(self, book_id) -> int:
         total_count = self.repo.get_total_copy_count(book_id)
         checked_count = self.repo.get_checked_copy_count(book_id)
@@ -197,6 +210,28 @@ class Service:
             return User(r.customer_id, r.email, r.name, r.card_inactive)
         except:
             print("make_display_user was not given a row it needed")
+            return None
+
+    def make_overdue_book(self, r: Row) -> Optional[OverdueBook]:
+        try:
+            book_id = r.book_id
+            available = self.book_available_for_checkout(book_id)
+            available_count = self.get_available_count(book_id)
+
+            return OverdueBook(
+                ListDisplayBook(
+                    book_id, 
+                    r.cover_img_url, 
+                    r.title, 
+                    r.genre, 
+                    available, 
+                    available_count
+                ),
+                r.loaner_email
+            )
+        except:
+            print("make_book was not given a row it needed")
+            print(r)
             return None
 
     def make_book(self, r: Row) -> Optional[Book]:

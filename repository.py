@@ -196,7 +196,6 @@ class Repository:
 
         return int(rows[0].count)
 
-
     def get_users_checked_books(self, email):
         sql = f"""\
 		with CurrentCheckedBook(BookID, LenderEmailAddress) as (
@@ -345,3 +344,23 @@ class Repository:
 
     def dispose(self):
         self.conn.close()
+
+    def get_overdue_books(self):
+        sql = f"""\
+    	select 
+    		Book.BookID as book_id,
+    		Book.CoverImg as cover_img_url,
+    		Book.Title as title,
+    		Genre.Name as genre,
+    		Customer.EmailAddress as loaner_email
+    	from Checkout
+    		inner join BookCopy on BookCopy.BookCopyID = Checkout.BookCopyID
+    		inner join Book on Book.BookID = BookCopy.BookID
+    		inner join Genre on Genre.GenreID = Book.GenreID
+    		inner join LibraryCard on LibraryCard.LibraryCardID = Checkout.LenderLibraryCardID
+    		inner join Customer on Customer.CustomerID = LibraryCard.CustomerID
+		where Checkout.DateReturned is null
+		order by Book.Title, Book.ISBN;
+    	"""
+        rows = self.get_rows(sql)
+        return rows
